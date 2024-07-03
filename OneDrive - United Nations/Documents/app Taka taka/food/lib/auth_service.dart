@@ -24,6 +24,11 @@ class AuthService {
       return null;
     }
   }
+  // send forgot password link
+   resetPassword(String email) async {
+    await _auth.sendPasswordResetEmail(email: email);
+   }
+
 
   // Sign out
   Future<bool> signOut() async {
