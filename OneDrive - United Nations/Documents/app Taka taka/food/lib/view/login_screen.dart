@@ -1,5 +1,5 @@
 import 'package:flutter/material.dart';
-import 'auth_service.dart';
+import '../view_model/auth_service.dart';
 
 enum LoginMenu {
   intro,
@@ -85,7 +85,7 @@ class IntroductionPage extends StatelessWidget {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background color to white
       appBar: AppBar(
-        title: const Text('Taka Taka App'),
+        title: const Text('App Taka taka'),
       ),
       body: Center(
         child: Padding(
@@ -101,12 +101,12 @@ class IntroductionPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                "Taka Taka",
+                "App Taka Taka ",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
               const Text(
-                "Join us in making steps towards environmental change",
+                "Join us in making steps towards acheiving a zero waste at UNON compound",
                 textAlign: TextAlign.center,
                 style: TextStyle(fontSize: 16),
               ),
@@ -383,7 +383,7 @@ class _SignUpPageState extends State<SignUpPage> {
 }
 
 class ForgotPasswordPage extends StatelessWidget {
-   ForgotPasswordPage({required this.goToSignInPage, super.key});
+  ForgotPasswordPage({required this.goToSignInPage, super.key});
 
   final Function() goToSignInPage;
   final AuthService authService=AuthService();
@@ -452,8 +452,8 @@ class ForgotPasswordPage extends StatelessWidget {
                   padding: EdgeInsets.symmetric(vertical: 16, horizontal: 80),
                 ),
                 child: Text(
-                  'Send link',
-                  style: TextStyle(fontSize: 16,color:Colors.white)
+                    'Send link',
+                    style: TextStyle(fontSize: 16,color:Colors.white)
                 ),
               ),
               SizedBox(height: 20),

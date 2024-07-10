@@ -1,8 +1,9 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:food/view/super_page.dart';
 
 import 'firebase_options.dart';
-import 'login_screen.dart';
+import 'view/login_screen.dart';
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -23,30 +24,30 @@ class MyApp extends StatelessWidget {
       title: 'Taka taka app',
       debugShowCheckedModeBanner: false,
       theme: ThemeData(
-        primarySwatch: Colors.blue,
-        scaffoldBackgroundColor: Colors.white,
-        appBarTheme: const AppBarTheme(
-          color: Colors.black,
-          titleTextStyle: TextStyle(
-            color: Colors.blue,
-            fontWeight: FontWeight.w800,
-            wordSpacing: 3.0,
-          )
-        ),
-        inputDecorationTheme: InputDecorationTheme(
-          border: OutlineInputBorder(
-            borderRadius: BorderRadius.circular(20.0),
-            borderSide: BorderSide(
-              color: Colors.white,
-              width: 3.0,
-            )
-          )
-        ),
-        textTheme: TextTheme(
+          primarySwatch: Colors.blue,
+          scaffoldBackgroundColor: Colors.white,
+          appBarTheme: const AppBarTheme(
+              color: Colors.black,
+              titleTextStyle: TextStyle(
+                color: Colors.blue,
+                fontWeight: FontWeight.w800,
+                wordSpacing: 3.0,
+              )
+          ),
+          inputDecorationTheme: InputDecorationTheme(
+              border: OutlineInputBorder(
+                  borderRadius: BorderRadius.circular(20.0),
+                  borderSide: BorderSide(
+                    color: Colors.white,
+                    width: 3.0,
+                  )
+              )
+          ),
+          textTheme: TextTheme(
 
-        )
+          )
       ),
-      home:  const LoginScreen(),
+      home:   SuperPageScreen(),
     );
   }
 
