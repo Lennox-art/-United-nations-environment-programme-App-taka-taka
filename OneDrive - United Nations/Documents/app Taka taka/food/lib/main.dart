@@ -1,5 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
+import 'package:food/routes/routes.dart';
+import 'package:food/view/new_post_screen.dart';
+import 'package:food/view/splash_screen.dart';
 import 'package:food/view/super_page.dart';
 
 import 'firebase_options.dart';
@@ -47,7 +50,12 @@ class MyApp extends StatelessWidget {
 
           )
       ),
-      home:   SuperPageScreen(),
+      routes: {
+        Routes.splashScreen.path: (_) => SplashScreenPage(),
+        Routes.login.path: (_) => LoginScreen(),
+        Routes.superPage.path: (_) => SuperPageScreen(),
+        Routes.newPost.path: (_) => NewPostScreen(),
+      },
     );
   }
 
