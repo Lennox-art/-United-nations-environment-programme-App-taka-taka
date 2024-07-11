@@ -8,3 +8,4 @@ class NotificationsScreen extends StatelessWidget {
     return Text("Notifications");
   }
 }
+

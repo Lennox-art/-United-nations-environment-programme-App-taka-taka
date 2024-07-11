@@ -4,6 +4,7 @@ class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
 
   bool get isUserLoggedIn => _auth.currentUser != null;
+  User? get user => _auth.currentUser;
 
 
   Future<void> logout() async => _auth.signOut();

@@ -12,7 +12,7 @@ class SuperPageScreen extends StatefulWidget {
 }
 
 class _SuperPageScreenState extends State<SuperPageScreen> {
-  int _selectedIndex = 0;
+  int _selectedIndex = 2;
 
   static List<Widget> _widgetOptions = <Widget>[
     HomePageScreen(),
