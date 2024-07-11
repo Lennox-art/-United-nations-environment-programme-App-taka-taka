@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food/routes/routes.dart';
 import '../view_model/auth_service.dart';
 
 enum LoginMenu {
@@ -153,7 +154,7 @@ class _SignInPageState extends State<SignInPage> {
     final password = _passwordController.text;
 
     await _authService.signInWithEmailPassword(email, password).then(
-          (user) {
+      (user) {
         if (user == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Login failed')),
@@ -165,10 +166,12 @@ class _SignInPageState extends State<SignInPage> {
         ScaffoldMessenger.of(context).showSnackBar(
           const SnackBar(content: Text('Login successful')),
         );
-        // todo: go to main menu
+        //go to main menu
+        Navigator.of(context)
+            .pushNamedAndRemoveUntil(Routes.superPage.path, (_) => false);
       },
     ).catchError(
-          (e, trace) {
+      (e, trace) {
         print(trace.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -260,7 +263,8 @@ class SignUpPage extends StatefulWidget {
 class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final TextEditingController _confirmPasswordController = TextEditingController();
+  final TextEditingController _confirmPasswordController =
+      TextEditingController();
   final AuthService _authService = AuthService();
   bool _obscurePasswordText = true;
   bool _obscureConfirmPasswordText = true;
@@ -278,7 +282,7 @@ class _SignUpPageState extends State<SignUpPage> {
     }
 
     await _authService.createAccount(email, password).then(
-          (user) {
+      (user) {
         if (user == null) {
           ScaffoldMessenger.of(context).showSnackBar(
             const SnackBar(content: Text('Account creation failed')),
@@ -291,10 +295,29 @@ class _SignUpPageState extends State<SignUpPage> {
           const SnackBar(content: Text('Account created successfully')),
         );
 
-        // todo: go to login page
+        //  sign in user
+        _authService.signInWithEmailPassword(email, password)
+            .then(
+              (user) {
+
+                Navigator.of(context)
+                    .pushNamedAndRemoveUntil(Routes.superPage.path, (_) => false);
+              },
+        )
+            .catchError((e, trace) {
+            print(trace.toString());
+            ScaffoldMessenger.of(context).showSnackBar(
+              SnackBar(content: Text(e.toString())),
+            );
+
+            widget.goToSignInPage();
+
+          },
+        );
+
       },
     ).catchError(
-          (e, trace) {
+      (e, trace) {
         print(trace.toString());
         ScaffoldMessenger.of(context).showSnackBar(
           SnackBar(content: Text(e.toString())),
@@ -334,7 +357,9 @@ class _SignUpPageState extends State<SignUpPage> {
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscurePasswordText ? Icons.visibility : Icons.visibility_off,
+                      _obscurePasswordText
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
@@ -353,11 +378,14 @@ class _SignUpPageState extends State<SignUpPage> {
                   border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
-                      _obscureConfirmPasswordText ? Icons.visibility : Icons.visibility_off,
+                      _obscureConfirmPasswordText
+                          ? Icons.visibility
+                          : Icons.visibility_off,
                     ),
                     onPressed: () {
                       setState(() {
-                        _obscureConfirmPasswordText = !_obscureConfirmPasswordText;
+                        _obscureConfirmPasswordText =
+                            !_obscureConfirmPasswordText;
                       });
                     },
                   ),
@@ -386,8 +414,9 @@ class ForgotPasswordPage extends StatelessWidget {
   ForgotPasswordPage({required this.goToSignInPage, super.key});
 
   final Function() goToSignInPage;
-  final AuthService authService=AuthService();
-  final TextEditingController emailController=TextEditingController();
+  final AuthService authService = AuthService();
+  final TextEditingController emailController = TextEditingController();
+
   @override
   Widget build(BuildContext context) {
     return Scaffold(
@@ -402,9 +431,10 @@ class ForgotPasswordPage extends StatelessWidget {
             mainAxisAlignment: MainAxisAlignment.center,
             children: <Widget>[
               Image.asset(
-                'assets/un-preview.png', // Replace with your actual logo image asset path
+                'assets/un-preview.png',
+                // Replace with your actual logo image asset path
                 height: 200,
-                width:  200,
+                width: 200,
               ),
               SizedBox(height: 20),
               Icon(
@@ -451,10 +481,8 @@ class ForgotPasswordPage extends StatelessWidget {
                   ),
                   padding: EdgeInsets.symmetric(vertical: 16, horizontal: 80),
                 ),
-                child: Text(
-                    'Send link',
-                    style: TextStyle(fontSize: 16,color:Colors.white)
-                ),
+                child: Text('Send link',
+                    style: TextStyle(fontSize: 16, color: Colors.white)),
               ),
               SizedBox(height: 20),
               TextButton(
@@ -471,6 +499,7 @@ class ForgotPasswordPage extends StatelessWidget {
     );
   }
 }
+
 class VerificationCodePage extends StatefulWidget {
   @override
   _VerificationCodePageState createState() => _VerificationCodePageState();
@@ -492,7 +521,8 @@ class _VerificationCodePageState extends State<VerificationCodePage> {
           children: <Widget>[
             Center(
               child: Image.asset(
-                'assets/un_logo.png', // Ensure the logo image is in the assets folder
+                'assets/un_logo.png',
+                // Ensure the logo image is in the assets folder
                 height: 100,
               ),
             ),
@@ -561,7 +591,9 @@ class _VerificationCodePageState extends State<VerificationCodePage> {
                 style: TextStyle(fontSize: 18.0),
               ),
               style: ElevatedButton.styleFrom(
-                padding: EdgeInsets.symmetric(vertical: 16.0), backgroundColor: Colors.lightBlue, // Button background color
+                padding: EdgeInsets.symmetric(vertical: 16.0),
+                backgroundColor: Colors.lightBlue,
+                // Button background color
                 shape: RoundedRectangleBorder(
                   borderRadius: BorderRadius.circular(32.0),
                 ),
