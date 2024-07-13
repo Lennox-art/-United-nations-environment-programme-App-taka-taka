@@ -7,6 +7,12 @@ class AuthService {
   User? get user => _auth.currentUser;
 
 
+  Future<void> changeProfilePicture(String photoUrl) async {
+    if(user == null) return;
+    await user!.updatePhotoURL(photoUrl);
+  }
+
+
   Future<void> logout() async => _auth.signOut();
 
   // Sign in with email and password

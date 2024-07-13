@@ -85,9 +85,7 @@ class IntroductionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background color to white
-      appBar: AppBar(
-        title: const Text('App Taka taka'),
-      ),
+
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -102,7 +100,7 @@ class IntroductionPage extends StatelessWidget {
               ),
               const SizedBox(height: 20),
               const Text(
-                "App Taka Taka ",
+                "App Taka Taka",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 20),
@@ -427,72 +425,74 @@ class ForgotPasswordPage extends StatelessWidget {
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
-          child: Column(
-            mainAxisAlignment: MainAxisAlignment.center,
-            children: <Widget>[
-              Image.asset(
-                'assets/un-preview.png',
-                // Replace with your actual logo image asset path
-                height: 200,
-                width: 200,
-              ),
-              SizedBox(height: 20),
-              Icon(
-                Icons.lock,
-                size: 100,
-                color: Colors.blue,
-              ),
-              SizedBox(height: 20),
-              Text(
-                "Enter your email and we'll send you a link to change a new password",
-                textAlign: TextAlign.center,
-                style: TextStyle(
-                  color: Colors.black,
-                  fontSize: 18,
+          child: SingleChildScrollView(
+            child: Column(
+              mainAxisAlignment: MainAxisAlignment.center,
+              children: <Widget>[
+                Image.asset(
+                  'assets/un-preview.png',
+                  // Replace with your actual logo image asset path
+                  height: 200,
+                  width: 200,
                 ),
-              ),
-              SizedBox(height: 20),
-              TextField(
-                controller: emailController,
-                decoration: InputDecoration(
-                  hintText: 'Enter your UN Email',
-                  filled: true,
-                  // fillColor: Colors.
-                  // border: OutlineInputBorder(
-                  //   borderRadius: BorderRadius.circular(30),
-                  //   borderSide: BorderSide.none,
-                  // ),
-                  contentPadding: EdgeInsets.symmetric(
-                    vertical: 16,
-                    horizontal: 24,
+                SizedBox(height: 20),
+                Icon(
+                  Icons.lock,
+                  size: 100,
+                  color: Colors.blue,
+                ),
+                SizedBox(height: 20),
+                Text(
+                  "Enter your email and we'll send you a link to change a new password",
+                  textAlign: TextAlign.center,
+                  style: TextStyle(
+                    color: Colors.black,
+                    fontSize: 18,
                   ),
                 ),
-              ),
-              SizedBox(height: 20),
-              ElevatedButton(
-                onPressed: () {
-                  // Handle forgot password action
-                  authService.resetPassword(emailController.text.trim());
-                },
-                style: ElevatedButton.styleFrom(
-                  backgroundColor: Colors.blue,
-                  shape: RoundedRectangleBorder(
-                    borderRadius: BorderRadius.circular(30),
+                SizedBox(height: 20),
+                TextField(
+                  controller: emailController,
+                  decoration: InputDecoration(
+                    hintText: 'Enter your UN Email',
+                    filled: true,
+                    // fillColor: Colors.
+                    // border: OutlineInputBorder(
+                    //   borderRadius: BorderRadius.circular(30),
+                    //   borderSide: BorderSide.none,
+                    // ),
+                    contentPadding: EdgeInsets.symmetric(
+                      vertical: 16,
+                      horizontal: 24,
+                    ),
                   ),
-                  padding: EdgeInsets.symmetric(vertical: 16, horizontal: 80),
                 ),
-                child: Text('Send link',
-                    style: TextStyle(fontSize: 16, color: Colors.white)),
-              ),
-              SizedBox(height: 20),
-              TextButton(
-                onPressed: goToSignInPage,
-                child: Text(
-                  "Sign In",
-                  style: TextStyle(color: Colors.blue),
+                SizedBox(height: 20),
+                ElevatedButton(
+                  onPressed: () {
+                    // Handle forgot password action
+                    authService.resetPassword(emailController.text.trim());
+                  },
+                  style: ElevatedButton.styleFrom(
+                    backgroundColor: Colors.blue,
+                    shape: RoundedRectangleBorder(
+                      borderRadius: BorderRadius.circular(30),
+                    ),
+                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 80),
+                  ),
+                  child: Text('Send password reset link',
+                      style: TextStyle(fontSize: 16, color: Colors.white)),
                 ),
-              ),
-            ],
+                SizedBox(height: 20),
+                TextButton(
+                  onPressed: goToSignInPage,
+                  child: Text(
+                    "Sign In",
+                    style: TextStyle(color: Colors.blue),
+                  ),
+                ),
+              ],
+            ),
           ),
         ),
       ),

@@ -1,135 +1,160 @@
 import 'package:firebase_auth/firebase_auth.dart';
-import 'package:flutter/cupertino.dart';
 import 'package:flutter/material.dart';
 import 'package:food/routes/routes.dart';
 import 'package:food/view_model/auth_service.dart';
 
-class ProfileScreen extends StatelessWidget {
-  ProfileScreen({super.key});
+class ProfileScreen extends StatefulWidget {
+  const ProfileScreen({super.key});
 
+  @override
+  State<ProfileScreen> createState() => _ProfileScreenState();
+}
+
+class _ProfileScreenState extends State<ProfileScreen> {
   final AuthService _authService = AuthService();
+
   late final User? user = _authService.user;
 
   @override
   Widget build(BuildContext context) {
     return Flex(
       direction: Axis.vertical,
-      crossAxisAlignment: CrossAxisAlignment.center,
+      crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text("Profile"),
-
+        const Text(
+          "Profile",
+          textAlign: TextAlign.left,
+          style: TextStyle(
+            fontWeight: FontWeight.bold,
+          ),
+        ),
         const Divider(
           thickness: 1,
           color: Colors.black,
         ),
-
-        Visibility(
-          visible: user != null,
-          replacement: const Text("User data not found"),
-          child: Expanded(
-            child: Container(
-              color: Colors.blue,
-              child: Column(
+        Expanded(
+          child: Column(
+            mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+            children: [
+              Column(
                 mainAxisAlignment: MainAxisAlignment.start,
                 crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisSize: MainAxisSize.min,
                 children: [
-                  const CircleAvatar(
+                   CircleAvatar(
                     radius: 80,
-                    child: Icon(Icons.person_outline),
+                    child: Visibility(
+                      visible: user?.photoURL != null && user!.photoURL!.isNotEmpty,
+                      replacement: const Icon(Icons.person_outline),
+                      child: Image.network(user?.photoURL ?? ""),
+                    ),
                   ),
+                  Builder(builder: (context) {
+                    var emailNames = user!.email!.split("@");
+                    var allNames = emailNames.first.split(".");
 
-                  Builder(
-                    builder: (context) {
-                      var emailNames = user!.email!.split("@");
-                      var allNames = emailNames.first.split(".");
-
-                      return ListTile(
-                        title: Text("${allNames.firstOrNull} ${allNames.lastOrNull}"),
-                      );
-                    }
-                  ),
-
+                    return ListTile(
+                      title: Text(
+                        "${allNames.firstOrNull} ${allNames.lastOrNull}",
+                        style: const TextStyle(
+                          fontWeight: FontWeight.bold,
+                        ),
+                        textAlign: TextAlign.center,
+                      ),
+                    );
+                  }),
                   ListTile(
-                    title: Text(user!.email!),
-                  )
+                    title: Text(
+                      user!.email!,
+                      textAlign: TextAlign.center,
+                    ),
+                  ),
+                  Align(
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: ElevatedButton(
+                        onPressed: () {
+                          //todo open new page
+                          Navigator.of(context).pushNamed(Routes.editProfile.path);
+                        },
+                        child: const Text("Edit profile"),
+                      ),
+                    ),
+                  ),
+                ],
+              ),
+              Row(
+                crossAxisAlignment: CrossAxisAlignment.center,
+                mainAxisAlignment: MainAxisAlignment.center,
+                children: [
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.center,
+                    children: [
+                      Image.asset(
+                        'assets/reward_ribbon.png',
+                        width: 100,
+                        height: 100,
+                        fit: BoxFit.cover,
+                      ),
+                      Text(
+                        "Reward points",
+                        style: TextStyle(fontWeight: FontWeight.w600),
+                      ),
+                    ],
+                  ),
+                  Text(
+                    "125",
+                    style: TextStyle(
+                      fontWeight: FontWeight.w800,
+                    ),
+                  ),
+                ],
+              ),
+            ],
+          ),
+        ),
+        Align(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () async {},
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: Icon(Icons.settings),
+                  ),
+                  const Text("Settings"),
                 ],
               ),
             ),
           ),
         ),
-
-         Row(
-          crossAxisAlignment: CrossAxisAlignment.center,
-          mainAxisAlignment: MainAxisAlignment.center,
-          children: [
-            Column(
-              children: [
-                Image.asset(
-                  'assets/reward_ribbon.png',
-                  width: 200,
-                  height: 150,
-                  fit: BoxFit.cover,
-                ),
-                Text("Reward points"),
-              ],
-            ),
-
-            Text("125"),
-          ],
-        ),
-
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            onPressed: () async {
-
-            },
-            style: const ButtonStyle(
-              textStyle: WidgetStatePropertyAll(
-                TextStyle(),
-              ),
-              foregroundColor: WidgetStatePropertyAll(Colors.white),
-              backgroundColor: WidgetStatePropertyAll(Colors.blue),
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(
-                    borderRadius: BorderRadius.all(Radius.circular(2.0))
-                ),
+        Align(
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: ElevatedButton(
+              onPressed: () async {
+                await _authService.logout();
+                Navigator.of(context).pushNamedAndRemoveUntil(
+                  Routes.login.path,
+                  (_) => false,
+                );
+              },
+              child: Row(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.only(right: 4.0),
+                    child: Icon(Icons.logout),
+                  ),
+                  const Text("Logout"),
+                ],
               ),
             ),
-            child: Row(
-              mainAxisSize: MainAxisSize.min,
-              children: [
-                Icon(Icons.settings),
-                const Text("Settings"),
-              ],
-            ),
-          ),
-        ),
-
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: ElevatedButton(
-            onPressed: () async {
-              await _authService.logout();
-              Navigator.of(context).pushNamedAndRemoveUntil(
-                Routes.login.path,
-                (_) => false,
-              );
-            },
-            style: const ButtonStyle(
-              textStyle: WidgetStatePropertyAll(
-                TextStyle(),
-              ),
-              foregroundColor: WidgetStatePropertyAll(Colors.white),
-              backgroundColor: WidgetStatePropertyAll(Colors.blue),
-              shape: WidgetStatePropertyAll(
-                RoundedRectangleBorder(
-                  borderRadius: BorderRadius.all(Radius.circular(2.0))
-                ),
-              ),
-            ),
-            child: const Text("Logout"),
           ),
         ),
       ],

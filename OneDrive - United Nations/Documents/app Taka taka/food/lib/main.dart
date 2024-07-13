@@ -1,6 +1,8 @@
 import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:food/routes/routes.dart';
+import 'package:food/theme/themes.dart';
+import 'package:food/view/edit_profile_page.dart';
 import 'package:food/view/new_post_screen.dart';
 import 'package:food/view/splash_screen.dart';
 import 'package:food/view/super_page.dart';
@@ -26,35 +28,13 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       title: 'Taka taka app',
       debugShowCheckedModeBanner: false,
-      theme: ThemeData(
-          primarySwatch: Colors.blue,
-          scaffoldBackgroundColor: Colors.white,
-          appBarTheme: const AppBarTheme(
-              color: Colors.black,
-              titleTextStyle: TextStyle(
-                color: Colors.blue,
-                fontWeight: FontWeight.w800,
-                wordSpacing: 3.0,
-              )
-          ),
-          inputDecorationTheme: InputDecorationTheme(
-              border: OutlineInputBorder(
-                  borderRadius: BorderRadius.circular(20.0),
-                  borderSide: BorderSide(
-                    color: Colors.white,
-                    width: 3.0,
-                  )
-              )
-          ),
-          textTheme: TextTheme(
-
-          )
-      ),
+      theme: theme,
       routes: {
         Routes.splashScreen.path: (_) => SplashScreenPage(),
         Routes.login.path: (_) => LoginScreen(),
         Routes.superPage.path: (_) => SuperPageScreen(),
         Routes.newPost.path: (_) => NewPostScreen(),
+        Routes.editProfile.path: (_) => EditProfilePage(),
       },
     );
   }

@@ -7,7 +7,7 @@ class NewPostScreen extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(),
-      body:Text("New post"),
+      body: Text("New post"),
     );
   }
 }

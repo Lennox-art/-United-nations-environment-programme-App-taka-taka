@@ -2,7 +2,8 @@ enum Routes {
   splashScreen("/"),
   login("/login"),
   superPage("/home"),
-  newPost("/post");
+  newPost("/post"),
+  editProfile("/editProfile");
 
   final String path;
 
