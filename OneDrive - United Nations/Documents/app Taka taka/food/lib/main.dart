@@ -30,11 +30,11 @@ class MyApp extends StatelessWidget {
       debugShowCheckedModeBanner: false,
       theme: theme,
       routes: {
-        Routes.splashScreen.path: (_) => SplashScreenPage(),
-        Routes.login.path: (_) => LoginScreen(),
+        Routes.splashScreen.path: (_) => const SplashScreenPage(),
+        Routes.login.path: (_) => const LoginScreen(),
         Routes.superPage.path: (_) => SuperPageScreen(),
         Routes.newPost.path: (_) => NewPostScreen(),
-        Routes.editProfile.path: (_) => EditProfilePage(),
+        Routes.editProfile.path: (_) => const EditProfilePage(),
       },
     );
   }

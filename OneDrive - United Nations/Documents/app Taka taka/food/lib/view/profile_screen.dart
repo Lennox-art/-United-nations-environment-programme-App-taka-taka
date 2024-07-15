@@ -47,7 +47,14 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     child: Visibility(
                       visible: user?.photoURL != null && user!.photoURL!.isNotEmpty,
                       replacement: const Icon(Icons.person_outline),
-                      child: Image.network(user?.photoURL ?? ""),
+                      child: Image.network(user?.photoURL ?? "",
+                        errorBuilder: (_,__,trace) {
+                        return const Icon(Icons.person_outline);
+                        },
+                      loadingBuilder: (_, __,  ___) {
+                        return const CircularProgressIndicator();
+                      },
+                      ),
                     ),
                   ),
                   Builder(builder: (context) {
@@ -105,7 +112,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
                     ],
                   ),
                   Text(
-                    "125",
+                    "10",
                     style: TextStyle(
                       fontWeight: FontWeight.w800,
                     ),

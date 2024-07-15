@@ -52,7 +52,10 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   child: Visibility(
                     visible: user?.photoURL != null && user!.photoURL!.isNotEmpty,
                     replacement: const Icon(Icons.person_outline),
-                    child: Image.network(user?.photoURL ?? ""),
+                    child: Image.network(user?.photoURL ?? "",
+                        errorBuilder: (_,__,trace) {
+                  return const Icon(Icons.person_outline);
+                  },),
                   ),
                 ),
                 Positioned(
@@ -209,63 +212,88 @@ class ChangePasswordDialog extends StatelessWidget {
       TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
 
+  final GlobalKey<FormState> _formKey = GlobalKey();
+  final AuthService _authService = AuthService();
+
   @override
   Widget build(BuildContext context) {
     return Dialog(
-      child: Padding(
-        padding: const EdgeInsets.all(20.0),
-        child: Wrap(
-          alignment: WrapAlignment.spaceEvenly,
-          children: [
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.center,
-                child: TextField(
-                  controller: _oldPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Old Password',
-                    prefixIcon: Icon(Icons.lock),
+      child: Form(
+        key: _formKey,
+        child: Padding(
+          padding: const EdgeInsets.all(20.0),
+          child: Wrap(
+            alignment: WrapAlignment.spaceEvenly,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: TextFormField(
+                    controller: _oldPasswordController,
+                    validator: (s) => s == null || s.isEmpty ? "Old password required" : null,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      labelText: 'Old Password',
+                      prefixIcon: Icon(Icons.lock),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.center,
-                child: TextField(
-                  controller: _passwordController,
-                  decoration: InputDecoration(
-                    labelText: 'New Password',
-                    prefixIcon: Icon(Icons.lock),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: TextFormField(
+                    controller: _passwordController,
+                    validator: (s) => s == null || s.isEmpty ? "New password required" : null,
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      labelText: 'New Password',
+                      prefixIcon: Icon(Icons.lock),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Align(
-                alignment: Alignment.center,
-                child: TextField(
-                  controller: _confirmPasswordController,
-                  decoration: InputDecoration(
-                    labelText: 'Confirm New Password',
-                    prefixIcon: Icon(Icons.lock),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Align(
+                  alignment: Alignment.center,
+                  child: TextFormField(
+                    controller: _confirmPasswordController,
+                    validator: (s) {
+                      if(s == null || s.isEmpty) {
+                        return "Confirm password required";
+                      }
+
+                      if(_confirmPasswordController.text != _passwordController.text) {
+                        return "Passwords must match";
+                      }
+
+                      return null;
+                    },
+                    autovalidateMode: AutovalidateMode.onUserInteraction,
+                    decoration: InputDecoration(
+                      labelText: 'Confirm New Password',
+                      prefixIcon: Icon(Icons.lock),
+                    ),
                   ),
                 ),
               ),
-            ),
-            Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: ElevatedButton(
-                onPressed: () {
-                  // Handle save changes
-                },
-                child: Text('Submit'),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: ElevatedButton(
+                  onPressed: () {
+                    // Handle save changes
+                    if(!_formKey.currentState.validate()) return;
+
+
+                  },
+                  child: Text('Submit'),
+                ),
               ),
-            ),
-          ],
+            ],
+          ),
         ),
       ),
     );
