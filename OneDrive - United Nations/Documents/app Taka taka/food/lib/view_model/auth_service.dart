@@ -7,9 +7,21 @@ class AuthService {
   User? get user => _auth.currentUser;
 
 
+    MapEntry<String, String>? getNamesFromEmail() {
+      if(user == null) return null;
+      var emailNames = user!.email!.split("@");
+      var allNames = emailNames.first.split(".");
+      return MapEntry(allNames.first, allNames.last);
+    }
+
   Future<void> changeProfilePicture(String photoUrl) async {
     if(user == null) return;
     await user!.updatePhotoURL(photoUrl);
+  }
+
+  Future<void> changeDisplayName(String displayName) async {
+    if(user == null) return;
+    await user!.updateDisplayName(displayName);
   }
 
 

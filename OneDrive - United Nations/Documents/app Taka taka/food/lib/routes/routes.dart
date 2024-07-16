@@ -3,6 +3,7 @@ enum Routes {
   login("/login"),
   superPage("/home"),
   newPost("/post"),
+  settings("/settings"),
   editProfile("/editProfile");
 
   final String path;

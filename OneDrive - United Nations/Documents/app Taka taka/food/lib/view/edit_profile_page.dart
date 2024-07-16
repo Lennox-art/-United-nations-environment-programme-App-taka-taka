@@ -7,24 +7,25 @@ import 'package:food/view_model/cloud_storage.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
-  const EditProfilePage({this.name, super.key});
+  const EditProfilePage({super.key});
 
-  final String? name;
+
 
   @override
   _EditProfilePageState createState() => _EditProfilePageState();
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late final _nameController = TextEditingController(text: widget.name);
+  late final _nameController = TextEditingController(text: user?.displayName);
   late final _emailController = TextEditingController(text: user?.email);
   final AuthService _auth = AuthService();
   final FirebaseCloudStorage _storage = FirebaseCloudStorage();
   late final User? user = _auth.user;
 
+
+
   @override
   Widget build(BuildContext context) {
-
 
     if (user == null) {
       return TextButton(
@@ -34,6 +35,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
         child: Text("User not found"),
       );
     }
+
     return Scaffold(
       appBar: AppBar(
         title: const Text('Edit Profile Page'),
@@ -49,14 +51,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
               children: [
                 CircleAvatar(
                   radius: 60,
-                  child: Visibility(
-                    visible: user?.photoURL != null && user!.photoURL!.isNotEmpty,
-                    replacement: const Icon(Icons.person_outline),
-                    child: Image.network(user?.photoURL ?? "",
-                        errorBuilder: (_,__,trace) {
-                  return const Icon(Icons.person_outline);
-                  },),
-                  ),
+                  backgroundImage: NetworkImage(user?.photoURL ?? ""),
                 ),
                 Positioned(
                   bottom: 0,
@@ -94,9 +89,22 @@ class _EditProfilePageState extends State<EditProfilePage> {
               children: [
                 TextField(
                   controller: _nameController,
+                  onChanged: (s) {
+                    setState(() {
+
+                    });
+                  },
                   decoration: InputDecoration(
                     labelText: 'Name',
                     prefixIcon: Icon(Icons.person),
+                    suffix: Visibility(
+                      visible: user?.displayName != _nameController.text,
+                      child: IconButton(onPressed: () {
+                        setState(() {
+                          _auth.changeDisplayName(_nameController.text);
+                        });
+                      }, icon: Icon(Icons.check)),
+                    )
                   ),
                 ),
                 SizedBox(height: 10),
@@ -107,26 +115,9 @@ class _EditProfilePageState extends State<EditProfilePage> {
                     prefixIcon: Icon(Icons.email),
                   ),
                 ),
-                SizedBox(height: 10),
-                ElevatedButton(
-                  onPressed: () {
-                    showDialog(
-                      context: context,
-                      builder: (b) {
-                        return ChangePasswordDialog();
-                      },
-                    );
-                  },
-                  child: Text("Change password"),
-                ),
+
                 SizedBox(height: 20),
               ],
-            ),
-            ElevatedButton(
-              onPressed: () {
-                // Handle save changes
-              },
-              child: Text('Save changes'),
             ),
           ],
         ),
@@ -204,98 +195,3 @@ class PickImageSourceDialog extends StatelessWidget {
   }
 }
 
-class ChangePasswordDialog extends StatelessWidget {
-  ChangePasswordDialog({super.key});
-
-  final TextEditingController _oldPasswordController = TextEditingController();
-  final TextEditingController _confirmPasswordController =
-      TextEditingController();
-  final TextEditingController _passwordController = TextEditingController();
-
-  final GlobalKey<FormState> _formKey = GlobalKey();
-  final AuthService _authService = AuthService();
-
-  @override
-  Widget build(BuildContext context) {
-    return Dialog(
-      child: Form(
-        key: _formKey,
-        child: Padding(
-          padding: const EdgeInsets.all(20.0),
-          child: Wrap(
-            alignment: WrapAlignment.spaceEvenly,
-            children: [
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: TextFormField(
-                    controller: _oldPasswordController,
-                    validator: (s) => s == null || s.isEmpty ? "Old password required" : null,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      labelText: 'Old Password',
-                      prefixIcon: Icon(Icons.lock),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: TextFormField(
-                    controller: _passwordController,
-                    validator: (s) => s == null || s.isEmpty ? "New password required" : null,
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      labelText: 'New Password',
-                      prefixIcon: Icon(Icons.lock),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: Align(
-                  alignment: Alignment.center,
-                  child: TextFormField(
-                    controller: _confirmPasswordController,
-                    validator: (s) {
-                      if(s == null || s.isEmpty) {
-                        return "Confirm password required";
-                      }
-
-                      if(_confirmPasswordController.text != _passwordController.text) {
-                        return "Passwords must match";
-                      }
-
-                      return null;
-                    },
-                    autovalidateMode: AutovalidateMode.onUserInteraction,
-                    decoration: InputDecoration(
-                      labelText: 'Confirm New Password',
-                      prefixIcon: Icon(Icons.lock),
-                    ),
-                  ),
-                ),
-              ),
-              Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () {
-                    // Handle save changes
-                    if(!_formKey.currentState.validate()) return;
-
-
-                  },
-                  child: Text('Submit'),
-                ),
-              ),
-            ],
-          ),
-        ),
-      ),
-    );
-  }
-}

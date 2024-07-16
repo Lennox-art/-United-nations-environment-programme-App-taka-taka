@@ -6,23 +6,40 @@ import 'new_post_screen.dart';
 import 'notifications_screen.dart';
 
 
+enum SuperPages {
+  home("Home", Icons.home),
+  notifications("Notifications", Icons.notifications),
+  profile("Profile", Icons.person);
+
+  final String value;
+  final IconData icon;
+
+  const SuperPages(this.value, this.icon);
+
+  Widget get widget => switch(this) {
+    SuperPages.home => const HomeTab(),
+    SuperPages.notifications => NotificationsScreen(),
+    SuperPages.profile => ProfileScreen(),
+  };
+
+}
+
 class SuperPageScreen extends StatefulWidget {
   @override
   _SuperPageScreenState createState() => _SuperPageScreenState();
 }
 
 class _SuperPageScreenState extends State<SuperPageScreen> {
-  int _selectedIndex = 2;
 
-  static List<Widget> _widgetOptions = <Widget>[
-    HomePageScreen(),
-    NotificationsScreen(),
-    ProfileScreen(),
-  ];
+
+  SuperPages get _defaultPage => SuperPages.home;
+  late SuperPages _selectedPage = _defaultPage;
+  List<SuperPages> pages = SuperPages.values;
+
 
   void _onItemTapped(int index) {
     setState(() {
-      _selectedIndex = index;
+      _selectedPage = pages[index];
     });
   }
 
@@ -30,36 +47,35 @@ class _SuperPageScreenState extends State<SuperPageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
-        title: Text('Taka Taka App'),
+        title: ListTile(
+          title: Text('Taka Taka App',style: TextStyle(color: Colors.white)),
+          subtitle: Padding(
+            padding: const EdgeInsets.all(4.0),
+            child: Text(_selectedPage.value, style: TextStyle(color: Colors.white),),
+          ),
+        ),
       ),
-      body: _widgetOptions.elementAt(_selectedIndex),
-      floatingActionButton: _selectedIndex == 0
-          ? FloatingActionButton(
-        onPressed: () {
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NewPostScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-      )
-          : null,
+      body: _selectedPage.widget,
+      floatingActionButton: Visibility(
+        visible: _selectedPage == SuperPages.home,
+        child: FloatingActionButton(
+          onPressed: () {
+            Navigator.push(
+              context,
+              MaterialPageRoute(builder: (context) => NewPostScreen()),
+            );
+          },
+          child: Icon(Icons.add),
+        ) ,
+      ),
       bottomNavigationBar: BottomNavigationBar(
-        items: const <BottomNavigationBarItem>[
-          BottomNavigationBarItem(
-            icon: Icon(Icons.home),
-            label: 'Home',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.notifications),
-            label: 'Notifications',
-          ),
-          BottomNavigationBarItem(
-            icon: Icon(Icons.person),
-            label: 'Profile',
-          ),
-        ],
-        currentIndex: _selectedIndex,
+        items: SuperPages.values.map((p) {
+          return BottomNavigationBarItem(
+            icon: Icon(p.icon),
+            label: p.value,
+          );
+        }).toList(),
+        currentIndex: _selectedPage.index,
         onTap: _onItemTapped,
       ),
     );

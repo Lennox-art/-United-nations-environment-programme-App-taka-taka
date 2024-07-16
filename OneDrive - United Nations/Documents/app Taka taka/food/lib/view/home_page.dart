@@ -1,90 +1,122 @@
-import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
-import 'package:food/firebase_options.dart';
-import 'package:food/routes/routes.dart';
-import 'package:food/theme/themes.dart';
-import 'package:food/view/edit_profile_page.dart';
-import 'package:food/view/login_screen.dart';
-import 'package:food/view/new_post_screen.dart';
 import 'package:shared_preferences/shared_preferences.dart';
-
-import 'firebase_options.dart';
-import 'view/login_screen.dart';
 import 'settings_screen.dart';
 import 'notifications_screen.dart';
 
-
-class HomePageScreen extends StatefulWidget {
-  const HomePageScreen({super.key});
+class HomeTab extends StatefulWidget {
+  const HomeTab({super.key});
 
   @override
-  _HomePageScreenState createState() => _HomePageScreenState();
+  State<HomeTab> createState() => _HomeTabState();
 }
 
-class _HomePageScreenState extends State<HomePageScreen> {
+class _HomeTabState extends State<HomeTab> {
+  final TextEditingController _searchController = TextEditingController();
 
+  Future<String?> _getUserName() async {
 
-  @override
-  Widget build(BuildContext context) {
-    return Scaffold(
-      appBar: AppBar(
-        title: Text('Home'),
-      ),
-      body: HomeTab(),
-      floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          // Handle FAB press
-          Navigator.push(
-            context,
-            MaterialPageRoute(builder: (context) => NotificationsScreen()),
-          );
-        },
-        child: Icon(Icons.add),
-      ),
-    );
+    SharedPreferences prefs = await SharedPreferences.getInstance();
+    return prefs.getString('userName');
   }
-}
 
-class HomeTab extends StatelessWidget {
+  @override
+  void initState() {
+
+    super.initState();
+  }
+
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(8.0),
-          child: TextField(
-            decoration: InputDecoration(
-              hintText: 'Search',
-              prefixIcon: Icon(Icons.search),
-              border: OutlineInputBorder(
-                borderRadius: BorderRadius.circular(8.0),
+    return FutureBuilder<String?>(
+      future: _getUserName(),
+      builder: (context, snapshot) {
+        String userName = snapshot.data ?? 'Test Acc';
+
+        return Column(
+          children: [
+            Padding(
+              padding: const EdgeInsets.all(16.0),
+              child: Row(
+                mainAxisAlignment: MainAxisAlignment.spaceBetween,
+                children: [
+                  Visibility(
+                    visible: _searchController.text.isNotEmpty,
+                    replacement: Row(
+                      children: [
+                        CircleAvatar(
+                          backgroundColor: Colors.blue,
+                          child: Icon(Icons.person, color: Colors.white),
+                        ),
+                        SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text('Welcome back!', style: TextStyle(fontSize: 16)),
+                            Row(
+                              children: [
+                                Text(userName, style: TextStyle(fontWeight: FontWeight.bold, fontSize: 18)),
+                                SizedBox(width: 5),
+                                Icon(Icons.waving_hand, color: Colors.orange),
+                              ],
+                            ),
+                          ],
+                        ),
+
+
+                      ],
+                    ),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: SearchBar(
+                        controller: _searchController,
+                      ),
+                    ),
+                  ),
+                  Visibility(
+                      visible: _searchController.text.isNotEmpty,
+                      replacement: IconButton(
+                          onPressed: () {
+                            _searchController.text = " ";
+                          },
+                          icon: Icon(Icons.search),
+                      ),
+                      child: IconButton(
+                          onPressed: () {
+                            _searchController.text = "";
+
+                          },
+                          icon: Icon(Icons.close),
+                      ),
+                  )
+                ],
               ),
             ),
-          ),
-        ),
-        Expanded(
-          child: ListView(
-            children: [
-              Post(
-                username: 'Kareem Aljabari',
-                timeAgo: '1h ago',
-                content: 'The always cheerful spirit of sunflowers inspires me to always be optimistic in facing...',
-                imageUrl: 'https://images.pexels.com/photos/1169084/pexels-photo-1169084.jpeg?cs=srgb&dl=pexels-suju-1169084.jpg&fm=jpg', // Replace with actual image URL
-                likes: '128K',
-                comments: 'Cutsyifa and 128K others',
+
+            Expanded(
+              child: ListView(
+                children: [
+                  Post(
+                    username: 'Kareem Aljabari',
+                    timeAgo: '1h ago',
+                    content: 'The always cheerful spirit of sunflowers inspires me to always be optimistic in facing...',
+                    imageUrl: 'https://images.pexels.com/photos/1169084/pexels-photo-1169084.jpeg?cs=srgb&dl=pexels-suju-1169084.jpg&fm=jpg', // Replace with actual image URL
+                    likes: '128K',
+                    comments: 'Cutsyifa and 128K others',
+                  ),
+                  Post(
+                    username: 'Sara Almasi',
+                    timeAgo: '8m ago',
+                    content: "Success does not happen overnight. Keep your eye on the prize and don't look back...",
+                    imageUrl: 'https://images.pexels.com/photos/1169084/pexels-photo-1169084.jpeg?cs=srgb&dl=pexels-suju-1169084.jpg&fm=jpg', // Replace with actual image URL
+                    likes: '75K',
+                    comments: 'Cutsyifa and 75K others',
+                  ),
+                ],
               ),
-              Post(
-                username: 'Sara Almasi',
-                timeAgo: '8m ago',
-                content: "Success does not happen overnight. Keep your eye on the prize and don't look back...",
-                imageUrl: 'https://img.freepik.com/free-photo/natures-beauty-captured-colorful-flower-close-up-generative-ai_188544-8593.jpg', // Replace with actual image URL
-                likes: '75K',
-                comments: 'Cutsyifa and 75K others',
-              ),
-            ],
-          ),
-        ),
-      ],
+            ),
+          ],
+        );
+      },
     );
   }
 }
@@ -97,7 +129,7 @@ class Post extends StatelessWidget {
   final String likes;
   final String comments;
 
-  const Post({
+  const Post({super.key,
     required this.username,
     required this.timeAgo,
     required this.content,
@@ -118,7 +150,7 @@ class Post extends StatelessWidget {
             Row(
               children: [
                 CircleAvatar(
-                  backgroundImage: NetworkImage('https://example.com/profile.jpg'), // Replace with actual profile image URL
+                  backgroundImage: NetworkImage(imageUrl), // Replace with actual profile image URL
                 ),
                 SizedBox(width: 8.0),
                 Column(

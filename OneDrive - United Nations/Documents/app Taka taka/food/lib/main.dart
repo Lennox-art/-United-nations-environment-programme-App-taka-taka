@@ -4,6 +4,7 @@ import 'package:food/routes/routes.dart';
 import 'package:food/theme/themes.dart';
 import 'package:food/view/edit_profile_page.dart';
 import 'package:food/view/new_post_screen.dart';
+import 'package:food/view/settings_screen.dart';
 import 'package:food/view/splash_screen.dart';
 import 'package:food/view/super_page.dart';
 
@@ -35,6 +36,7 @@ class MyApp extends StatelessWidget {
         Routes.superPage.path: (_) => SuperPageScreen(),
         Routes.newPost.path: (_) => NewPostScreen(),
         Routes.editProfile.path: (_) => const EditProfilePage(),
+        Routes.settings.path: (_) => const SettingsScreen(),
       },
     );
   }

@@ -2,10 +2,8 @@ import 'package:flutter/material.dart';
 import 'package:shared_preferences/shared_preferences.dart';
 
 class SettingsScreen extends StatefulWidget {
-  final bool isDarkMode;
-  final double fontSize;
 
-  SettingsScreen({required this.isDarkMode, required this.fontSize});
+  const SettingsScreen({Key? key}) : super(key: key);
 
   @override
   _SettingsScreenState createState() => _SettingsScreenState();
@@ -18,11 +16,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
   @override
   void initState() {
     super.initState();
-    _isDarkMode = widget.isDarkMode;
-    _fontSize = widget.fontSize;
+    _isDarkMode = ThemeMode.system == ThemeMode.dark;
+    _fontSize = 20;
   }
 
-  _saveSettings() async {
+  Future<void> _saveSettings() async {
     SharedPreferences prefs = await SharedPreferences.getInstance();
     await prefs.setBool('darkMode', _isDarkMode);
     await prefs.setDouble('fontSize', _fontSize);
@@ -48,7 +46,7 @@ class _SettingsScreenState extends State<SettingsScreen> {
                 });
               },
             ),
-            SizedBox(height: 20),
+            const SizedBox(height: 20),
             Text("Font Size", style: TextStyle(fontSize: _fontSize)),
             Slider(
               value: _fontSize,
@@ -66,11 +64,11 @@ class _SettingsScreenState extends State<SettingsScreen> {
         ),
       ),
       floatingActionButton: FloatingActionButton(
-        onPressed: () {
-          _saveSettings();
+        onPressed: () async {
+          await _saveSettings();
           Navigator.pop(context, {'isDarkMode': _isDarkMode, 'fontSize': _fontSize});
         },
-        child: Icon(Icons.save),
+        child: const Icon(Icons.save),
       ),
     );
   }

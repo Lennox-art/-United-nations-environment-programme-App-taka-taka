@@ -22,17 +22,7 @@ class _ProfileScreenState extends State<ProfileScreen> {
       crossAxisAlignment: CrossAxisAlignment.stretch,
       mainAxisAlignment: MainAxisAlignment.center,
       children: [
-        const Text(
-          "Profile",
-          textAlign: TextAlign.left,
-          style: TextStyle(
-            fontWeight: FontWeight.bold,
-          ),
-        ),
-        const Divider(
-          thickness: 1,
-          color: Colors.black,
-        ),
+
         Expanded(
           child: Column(
             mainAxisAlignment: MainAxisAlignment.spaceEvenly,
@@ -42,35 +32,32 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 crossAxisAlignment: CrossAxisAlignment.center,
                 mainAxisSize: MainAxisSize.min,
                 children: [
+
                    CircleAvatar(
                     radius: 80,
-                    child: Visibility(
-                      visible: user?.photoURL != null && user!.photoURL!.isNotEmpty,
-                      replacement: const Icon(Icons.person_outline),
-                      child: Image.network(user?.photoURL ?? "",
-                        errorBuilder: (_,__,trace) {
-                        return const Icon(Icons.person_outline);
-                        },
-                      loadingBuilder: (_, __,  ___) {
-                        return const CircularProgressIndicator();
-                      },
-                      ),
-                    ),
+                     backgroundImage: NetworkImage(user?.photoURL ?? ""),
+
                   ),
+
                   Builder(builder: (context) {
-                    var emailNames = user!.email!.split("@");
-                    var allNames = emailNames.first.split(".");
+
+                   String? displayName = user?.displayName;
+
+                   if(displayName == null) {
+                    var names = _authService.getNamesFromEmail();
+                     displayName = "${names?.key} ${names?.value}";
+                   }
 
                     return ListTile(
                       title: Text(
-                        "${allNames.firstOrNull} ${allNames.lastOrNull}",
+                        displayName,
                         style: const TextStyle(
                           fontWeight: FontWeight.bold,
                         ),
                         textAlign: TextAlign.center,
                       ),
                     );
-                  }),
+                  },),
                   ListTile(
                     title: Text(
                       user!.email!,
@@ -91,33 +78,22 @@ class _ProfileScreenState extends State<ProfileScreen> {
                   ),
                 ],
               ),
-              Row(
-                crossAxisAlignment: CrossAxisAlignment.center,
-                mainAxisAlignment: MainAxisAlignment.center,
-                children: [
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.center,
-                    children: [
-                      Image.asset(
-                        'assets/reward_ribbon.png',
-                        width: 100,
-                        height: 100,
-                        fit: BoxFit.cover,
-                      ),
-                      Text(
-                        "Reward points",
-                        style: TextStyle(fontWeight: FontWeight.w600),
-                      ),
-                    ],
-                  ),
-                  Text(
-                    "10",
-                    style: TextStyle(
-                      fontWeight: FontWeight.w800,
-                    ),
-                  ),
-                ],
+              Image.asset(
+                'assets/reward_ribbon.png',
+                width: 100,
+                height: 100,
+                fit: BoxFit.cover,
+              ),
+              Text(
+                "Reward points",
+                style: TextStyle(fontWeight: FontWeight.w600),
+              ),
+              Text(
+                "10",
+                style: TextStyle(
+                  fontWeight: FontWeight.w800,
+                  fontSize: 30,
+                ),
               ),
             ],
           ),
@@ -126,7 +102,9 @@ class _ProfileScreenState extends State<ProfileScreen> {
           child: Padding(
             padding: const EdgeInsets.all(8.0),
             child: ElevatedButton(
-              onPressed: () async {},
+              onPressed: () async {
+                Navigator.of(context).pushNamed(Routes.settings.path);
+              },
               child: Row(
                 mainAxisSize: MainAxisSize.min,
                 children: [

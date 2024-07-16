@@ -293,6 +293,8 @@ class _SignUpPageState extends State<SignUpPage> {
           const SnackBar(content: Text('Account created successfully')),
         );
 
+
+
         //  sign in user
         _authService.signInWithEmailPassword(email, password)
             .then(
@@ -300,6 +302,12 @@ class _SignUpPageState extends State<SignUpPage> {
 
                 Navigator.of(context)
                     .pushNamedAndRemoveUntil(Routes.superPage.path, (_) => false);
+
+                var names = _authService.getNamesFromEmail();
+                var displayName = "${names?.key} ${names?.value}";
+
+                _authService.changeDisplayName(displayName);
+
               },
         )
             .catchError((e, trace) {

@@ -16,7 +16,7 @@ class NotificationsScreen extends StatefulWidget {
 
 class _NotificationsScreenState extends State<NotificationsScreen> {
   List<Notification> notifications = [
-    Notification(title: 'Welcome!', message: 'Thank you for joining our app.'),
+    Notification(title: 'Welcome!', message: 'Thank you for joining our  app.'),
     Notification(title: 'New Feature', message: 'Check out the new feature in the latest update.'),
     // Add more sample notifications here
   ];
@@ -24,9 +24,7 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-      appBar: AppBar(
-        title: Text('Notifications'),
-      ),
+
       body: ListView.builder(
         itemCount: notifications.length,
         itemBuilder: (context, index) {
