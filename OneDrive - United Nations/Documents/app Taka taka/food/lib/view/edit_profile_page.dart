@@ -2,6 +2,7 @@ import 'dart:io';
 
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
+import 'package:food/main.dart';
 import 'package:food/view_model/auth_service.dart';
 import 'package:food/view_model/cloud_storage.dart';
 import 'package:image_picker/image_picker.dart';
@@ -16,112 +17,119 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late final _nameController = TextEditingController(text: user?.displayName);
-  late final _emailController = TextEditingController(text: user?.email);
-  final AuthService _auth = AuthService();
+  late final _nameController = TextEditingController(text: _auth.userNotifier.value?.displayName);
+  final AuthService _auth = getIt<AuthService>();
   final FirebaseCloudStorage _storage = FirebaseCloudStorage();
-  late final User? user = _auth.user;
 
 
+  @override
+  void initState() {
+    super.initState();
+  }
 
   @override
   Widget build(BuildContext context) {
 
-    if (user == null) {
-      return TextButton(
-        onPressed: () {
-          Navigator.of(context).pop();
-        },
-        child: Text("User not found"),
-      );
-    }
 
-    return Scaffold(
-      appBar: AppBar(
-        title: const Text('Edit Profile Page'),
-      ),
-      body: Padding(
-        padding: const EdgeInsets.all(16.0),
-        child: Flex(
-          direction: Axis.vertical,
-          mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-          crossAxisAlignment: CrossAxisAlignment.center,
-          children: [
-            Stack(
+
+    return ValueListenableBuilder(
+        valueListenable: _auth.userNotifier,
+        builder: (_, user,__) {
+          if (user == null) {
+            return TextButton(
+              onPressed: () {
+                Navigator.of(context).pop();
+              },
+              child: const Text("User not found"),
+            );
+          }
+
+        return Scaffold(
+          appBar: AppBar(
+            title: const Text('Edit Profile Page'),
+          ),
+          body: Padding(
+            padding: const EdgeInsets.all(16.0),
+            child: Flex(
+              direction: Axis.vertical,
+              mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+              crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                CircleAvatar(
-                  radius: 60,
-                  backgroundImage: NetworkImage(user?.photoURL ?? ""),
-                ),
-                Positioned(
-                  bottom: 0,
-                  right: 0,
-                  child: IconButton(
-                    icon: const Icon(Icons.camera_alt, color: Colors.blue, size: 30),
-                    onPressed: () {
-                      showDialog(
-                        context: context,
-                        builder: (_) => PickImageSourceDialog(
-                          onPickImage: (file) {
-                            _storage.uploadFile(
-                              ref: "/images/profile/${user!.uid}/profile_image.${file.name.split(".").last}",
-                              file: File(file.path),
-                              onSuccess: (photoUrl) {
-                                print("Photo success == $photoUrl");
-                                _auth.changeProfilePicture(photoUrl);
-                                setState(() {});
-                                Navigator.of(context).pop();
+                Stack(
+                  children: [
+                    CircleAvatar(
+                      radius: 60,
+                      backgroundImage: NetworkImage(user?.photoURL ?? ""),
+                    ),
+                    Positioned(
+                      bottom: 0,
+                      right: 0,
+                      child: IconButton(
+                        icon: const Icon(Icons.camera_alt, color: Colors.blue, size: 30),
+                        onPressed: () {
+                          showDialog(
+                            context: context,
+                            builder: (_) => PickImageSourceDialog(
+                              onPickImage: (file) {
+                                _storage.uploadFile(
+                                  ref: "/images/profile/${user!.uid}/profile_image.${file.name.split(".").last}",
+                                  file: File(file.path),
+                                  onSuccess: (photoUrl) {
+                                    print("Photo success == $photoUrl");
+                                    _auth.changeProfilePicture(photoUrl);
+                                    setState(() {});
+                                    Navigator.of(context).pop();
+                                  },
+                                  onFailure: (error) {
+                                    print("Photo failed == $error");
+                                    Navigator.of(context).pop();
+                                  }
+                                );
                               },
-                              onFailure: (error) {
-                                print("Photo failed == $error");
-                                Navigator.of(context).pop();
-                              }
-                            );
-                          },
-                        ),
-                      );
-                    },
-                  ),
+                            ),
+                          );
+                        },
+                      ),
+                    ),
+                  ],
                 ),
-              ],
-            ),
-            Column(
-              children: [
-                TextField(
-                  controller: _nameController,
-                  onChanged: (s) {
-                    setState(() {
-
-                    });
-                  },
-                  decoration: InputDecoration(
-                    labelText: 'Name',
-                    prefixIcon: Icon(Icons.person),
-                    suffix: Visibility(
-                      visible: user?.displayName != _nameController.text,
-                      child: IconButton(onPressed: () {
+                Column(
+                  children: [
+                    TextField(
+                      controller: _nameController,
+                      onChanged: (s) {
                         setState(() {
-                          _auth.changeDisplayName(_nameController.text);
-                        });
-                      }, icon: Icon(Icons.check)),
-                    )
-                  ),
-                ),
-                SizedBox(height: 10),
-                TextField(
-                  controller: _emailController,
-                  decoration: InputDecoration(
-                    labelText: 'Email',
-                    prefixIcon: Icon(Icons.email),
-                  ),
-                ),
 
-                SizedBox(height: 20),
+                        });
+                      },
+                      decoration: InputDecoration(
+                        labelText: 'Name',
+                        prefixIcon: Icon(Icons.person),
+                        suffix: Visibility(
+                          visible: user?.displayName != _nameController.text,
+                          child: IconButton(onPressed: () {
+                            setState(() {
+                              _auth.changeDisplayName(_nameController.text);
+                            });
+                          }, icon: Icon(Icons.check)),
+                        )
+                      ),
+                    ),
+                    SizedBox(height: 10),
+
+                    ListTile(
+                      leading: Icon(Icons.mail),
+                      title: Text(user?.email ?? 'no email'),
+                    ),
+
+                    SizedBox(height: 20),
+                  ],
+                ),
               ],
             ),
-          ],
-        ),
-      ),
+          ),
+        );
+      }
     );
   }
 }

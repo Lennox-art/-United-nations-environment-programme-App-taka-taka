@@ -1,4 +1,5 @@
 import 'package:flutter/material.dart';
+import 'package:food/main.dart';
 import 'package:food/routes/routes.dart';
 import '../view_model/auth_service.dart';
 
@@ -144,7 +145,7 @@ class SignInPage extends StatefulWidget {
 class _SignInPageState extends State<SignInPage> {
   final TextEditingController _emailController = TextEditingController();
   final TextEditingController _passwordController = TextEditingController();
-  final AuthService _authService = AuthService();
+  final AuthService _authService = getIt<AuthService>();
   bool _obscureText = true;
 
   Future<void> _login(BuildContext context) async {
@@ -263,7 +264,7 @@ class _SignUpPageState extends State<SignUpPage> {
   final TextEditingController _passwordController = TextEditingController();
   final TextEditingController _confirmPasswordController =
       TextEditingController();
-  final AuthService _authService = AuthService();
+  final AuthService _authService = getIt<AuthService>();
   bool _obscurePasswordText = true;
   bool _obscureConfirmPasswordText = true;
 
@@ -420,7 +421,7 @@ class ForgotPasswordPage extends StatelessWidget {
   ForgotPasswordPage({required this.goToSignInPage, super.key});
 
   final Function() goToSignInPage;
-  final AuthService authService = AuthService();
+  final AuthService authService = getIt<AuthService>();
   final TextEditingController emailController = TextEditingController();
 
   @override

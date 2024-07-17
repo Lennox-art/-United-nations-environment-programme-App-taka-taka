@@ -1,27 +1,52 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:flutter/material.dart';
 
 class AuthService {
   final FirebaseAuth _auth = FirebaseAuth.instance;
-
+  late final ValueNotifier<User?> userNotifier = ValueNotifier(_auth.currentUser);
   bool get isUserLoggedIn => _auth.currentUser != null;
-  User? get user => _auth.currentUser;
 
 
-    MapEntry<String, String>? getNamesFromEmail() {
+  AuthService() {
+    userNotifier.addListener(() {
+    if(userNotifier.value == null) {
+        print("No user");
+        } else {
+        print("Has user");
+        }
+    });
+
+
+    _auth.authStateChanges().listen((user) {
+      print("Auth updated");
+      userNotifier.value = user;
+    });
+
+    _auth.userChanges().listen((user) {
+      print("User updated");
+      userNotifier.value = user;
+    });
+  }
+
+
+  MapEntry<String, String>? getNamesFromEmail() {
+      var user = userNotifier.value;
       if(user == null) return null;
-      var emailNames = user!.email!.split("@");
+      var emailNames = user.email!.split("@");
       var allNames = emailNames.first.split(".");
       return MapEntry(allNames.first, allNames.last);
     }
 
   Future<void> changeProfilePicture(String photoUrl) async {
+    var user = userNotifier.value;
     if(user == null) return;
-    await user!.updatePhotoURL(photoUrl);
+    await user.updatePhotoURL(photoUrl);
   }
 
   Future<void> changeDisplayName(String displayName) async {
+    var user = userNotifier.value;
     if(user == null) return;
-    await user!.updateDisplayName(displayName);
+    await user.updateDisplayName(displayName);
   }
 
 

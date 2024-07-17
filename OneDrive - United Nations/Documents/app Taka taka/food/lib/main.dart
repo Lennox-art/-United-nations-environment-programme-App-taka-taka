@@ -7,9 +7,14 @@ import 'package:food/view/new_post_screen.dart';
 import 'package:food/view/settings_screen.dart';
 import 'package:food/view/splash_screen.dart';
 import 'package:food/view/super_page.dart';
+import 'package:food/view_model/auth_service.dart';
+import 'package:get_it/get_it.dart';
 
 import 'firebase_options.dart';
 import 'view/login_screen.dart';
+
+
+var getIt = GetIt.instance;
 
 void main() async {
   WidgetsFlutterBinding.ensureInitialized();
@@ -17,6 +22,9 @@ void main() async {
   await Firebase.initializeApp(
     options: DefaultFirebaseOptions.currentPlatform,
   );
+
+  final AuthService auth = getIt.registerSingleton(AuthService());
+
 
   runApp(const MyApp());
 }
