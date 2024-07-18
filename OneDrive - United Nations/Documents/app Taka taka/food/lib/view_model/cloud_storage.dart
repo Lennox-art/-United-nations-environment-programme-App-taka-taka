@@ -10,12 +10,13 @@ class FirebaseCloudStorage {
 
   Future<void> uploadFile({
     required String ref,
-    required File file,
+    required Function(Reference) uploadData,
     required Function(String) onSuccess,
     Function(String)? onFailure,
 }) async {
     var storageRef = _storage.ref(ref);
-   var uploadTask =  await storageRef.putFile(file);
+   var uploadTask =  await uploadData(storageRef);
+
    switch(uploadTask.state) {
      case TaskState.paused:
        //When upload paused

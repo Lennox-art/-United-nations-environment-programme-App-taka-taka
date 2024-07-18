@@ -118,26 +118,6 @@ class _ProfileScreenState extends State<ProfileScreen> {
                 padding: const EdgeInsets.all(8.0),
                 child: ElevatedButton(
                   onPressed: () async {
-                    Navigator.of(context).pushNamed(Routes.settings.path);
-                  },
-                  child: Row(
-                    mainAxisSize: MainAxisSize.min,
-                    children: [
-                      Padding(
-                        padding: const EdgeInsets.only(right: 4.0),
-                        child: Icon(Icons.settings),
-                      ),
-                      const Text("Settings"),
-                    ],
-                  ),
-                ),
-              ),
-            ),
-            Align(
-              child: Padding(
-                padding: const EdgeInsets.all(8.0),
-                child: ElevatedButton(
-                  onPressed: () async {
                     await _authService.logout();
                     Navigator.of(context).pushNamedAndRemoveUntil(
                       Routes.login.path,

@@ -47,12 +47,18 @@ class _SuperPageScreenState extends State<SuperPageScreen> {
   Widget build(BuildContext context) {
     return Scaffold(
       appBar: AppBar(
+        toolbarHeight: 70,
         title: ListTile(
-          title: Text('Taka Taka App',style: TextStyle(color: Colors.white)),
-          subtitle: Padding(
-            padding: const EdgeInsets.all(4.0),
+          contentPadding: const EdgeInsets.all(0.0),
+          title: Padding(
+            padding: const EdgeInsets.only(bottom: 6.0),
+            child: Text('Taka Taka App',style: TextStyle(color: Colors.white)),
+          ),
+          subtitle:Padding(
+            padding: const EdgeInsets.only(top: 5.0, bottom: 3.0),
             child: Text(_selectedPage.value, style: TextStyle(color: Colors.white),),
           ),
+
         ),
       ),
       body: _selectedPage.widget,

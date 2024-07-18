@@ -19,7 +19,7 @@ class EditProfilePage extends StatefulWidget {
 class _EditProfilePageState extends State<EditProfilePage> {
   late final _nameController = TextEditingController(text: _auth.userNotifier.value?.displayName);
   final AuthService _auth = getIt<AuthService>();
-  final FirebaseCloudStorage _storage = FirebaseCloudStorage();
+  final FirebaseCloudStorage _storage = getIt<FirebaseCloudStorage>();
 
 
   @override
@@ -59,7 +59,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
                   children: [
                     CircleAvatar(
                       radius: 60,
-                      backgroundImage: NetworkImage(user?.photoURL ?? ""),
+                      backgroundImage: NetworkImage(user.photoURL ?? ""),
                     ),
                     Positioned(
                       bottom: 0,
@@ -72,8 +72,12 @@ class _EditProfilePageState extends State<EditProfilePage> {
                             builder: (_) => PickImageSourceDialog(
                               onPickImage: (file) {
                                 _storage.uploadFile(
-                                  ref: "/images/profile/${user!.uid}/profile_image.${file.name.split(".").last}",
-                                  file: File(file.path),
+                                  ref: "/images/profile/${user.uid}/profile_image.${file.name.split(".").last}",
+
+                                  uploadData: (ref) async {
+                                    var data = await file.readAsBytes();
+                                    await ref.putData(data);
+                                  },
                                   onSuccess: (photoUrl) {
                                     print("Photo success == $photoUrl");
                                     _auth.changeProfilePicture(photoUrl);
