@@ -1,6 +1,10 @@
+import 'dart:ui';
+
 import 'package:flutter/material.dart';
 import 'package:food/main.dart';
+import 'package:food/model/models.dart';
 import 'package:food/routes/routes.dart';
+import 'package:food/view_model/firestore_service.dart';
 import '../view_model/auth_service.dart';
 
 enum LoginMenu {
@@ -86,7 +90,6 @@ class IntroductionPage extends StatelessWidget {
   Widget build(BuildContext context) {
     return Scaffold(
       backgroundColor: Colors.white, // Set the background color to white
-
       body: Center(
         child: Padding(
           padding: const EdgeInsets.all(16.0),
@@ -99,16 +102,19 @@ class IntroductionPage extends StatelessWidget {
                 height: 150,
                 fit: BoxFit.cover,
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               const Text(
                 "App Taka Taka",
                 style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 40),
               const Text(
                 "Join us in making steps towards acheiving a zero waste at UNON compound",
                 textAlign: TextAlign.center,
-                style: TextStyle(fontSize: 16),
+                style: TextStyle(
+                    fontSize: 18,
+                  fontWeight: FontWeight.w400,
+                ),
               ),
               const SizedBox(height: 20),
               ElevatedButton(
@@ -202,7 +208,6 @@ class _SignInPageState extends State<SignInPage> {
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -211,7 +216,6 @@ class _SignInPageState extends State<SignInPage> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureText ? Icons.visibility : Icons.visibility_off,
@@ -294,34 +298,47 @@ class _SignUpPageState extends State<SignUpPage> {
           const SnackBar(content: Text('Account created successfully')),
         );
 
+        //Create firestore record
+        var namePair = AuthService.extractNamesFromEmail(user.email!);
+
+        var displayName = "${namePair.key} ${namePair.value}";
+
+        debugPrint("Display name : $displayName");
+
+        User userRecord = User(
+          id: user.uid,
+          role: UserRoles.user,
+          displayName: displayName,
+          createdAt: DateTime.now(),
+        );
+
+        getIt<FirestoreService>().saveUser(userRecord);
+
+        debugPrint("User data saved");
 
 
         //  sign in user
-        _authService.signInWithEmailPassword(email, password)
-            .then(
-              (user) {
+        _authService.signInWithEmailPassword(email, password).then(
+          (user) {
+            Navigator.of(context)
+                .pushNamedAndRemoveUntil(
+                  Routes.superPage.path,
+                  (_) => false,
+            );
 
-                Navigator.of(context)
-                    .pushNamedAndRemoveUntil(Routes.superPage.path, (_) => false);
 
-                var names = _authService.getNamesFromEmail();
-                var displayName = "${names?.key} ${names?.value}";
 
-                _authService.changeDisplayName(displayName);
-
-              },
-        )
-            .catchError((e, trace) {
+          },
+        ).catchError(
+          (e, trace) {
             print(trace.toString());
             ScaffoldMessenger.of(context).showSnackBar(
               SnackBar(content: Text(e.toString())),
             );
 
             widget.goToSignInPage();
-
           },
         );
-
       },
     ).catchError(
       (e, trace) {
@@ -352,7 +369,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _emailController,
                 decoration: const InputDecoration(
                   labelText: 'Email',
-                  border: OutlineInputBorder(),
                 ),
                 keyboardType: TextInputType.emailAddress,
               ),
@@ -361,7 +377,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _passwordController,
                 decoration: InputDecoration(
                   labelText: 'Password',
-                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscurePasswordText
@@ -382,7 +397,6 @@ class _SignUpPageState extends State<SignUpPage> {
                 controller: _confirmPasswordController,
                 decoration: InputDecoration(
                   labelText: 'Confirm Password',
-                  border: const OutlineInputBorder(),
                   suffixIcon: IconButton(
                     icon: Icon(
                       _obscureConfirmPasswordText
@@ -487,7 +501,6 @@ class ForgotPasswordPage extends StatelessWidget {
                     shape: RoundedRectangleBorder(
                       borderRadius: BorderRadius.circular(30),
                     ),
-                    padding: EdgeInsets.symmetric(vertical: 16, horizontal: 80),
                   ),
                   child: Text('Send password reset link',
                       style: TextStyle(fontSize: 16, color: Colors.white)),
@@ -569,7 +582,6 @@ class _VerificationCodePageState extends State<VerificationCodePage> {
                     maxLength: 1,
                     decoration: InputDecoration(
                       counterText: '',
-                      border: OutlineInputBorder(),
                     ),
                     onChanged: (value) {
                       if (value.length == 1 && index < 3) {

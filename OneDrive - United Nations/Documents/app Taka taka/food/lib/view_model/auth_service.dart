@@ -28,26 +28,31 @@ class AuthService {
     });
   }
 
+  static MapEntry<String, String> extractNamesFromEmail(String email) {
+    var emailNames = email.split("@");
+    var allNames = emailNames.first.split(".");
+    return MapEntry(allNames.first, allNames.last);
+  }
 
   MapEntry<String, String>? getNamesFromEmail() {
       var user = userNotifier.value;
       if(user == null) return null;
-      var emailNames = user.email!.split("@");
-      var allNames = emailNames.first.split(".");
-      return MapEntry(allNames.first, allNames.last);
+      return extractNamesFromEmail(user.email!);
     }
 
-  Future<void> changeProfilePicture(String photoUrl) async {
+  /*Future<void> changeProfilePicture(String photoUrl) async {
     var user = userNotifier.value;
     if(user == null) return;
     await user.updatePhotoURL(photoUrl);
-  }
+  }*/
 
-  Future<void> changeDisplayName(String displayName) async {
-    var user = userNotifier.value;
-    if(user == null) return;
-    await user.updateDisplayName(displayName);
-  }
+  /*
+    Future<void> changeDisplayName(String displayName) async {
+      var user = userNotifier.value;
+      if(user == null) return;
+      await user.updateDisplayName(displayName);
+    }
+  */
 
 
   Future<void> logout() async => _auth.signOut();

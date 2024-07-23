@@ -1,4 +1,3 @@
-import 'dart:io';
 
 import 'package:firebase_storage/firebase_storage.dart';
 
@@ -17,11 +16,14 @@ class FirebaseCloudStorage {
     var storageRef = _storage.ref(ref);
    var uploadTask =  await uploadData(storageRef);
 
+
    switch(uploadTask.state) {
      case TaskState.paused:
        //When upload paused
+       break;
      case TaskState.running:
        //Maybe progress
+       break;
      case TaskState.success:
      onSuccess.call(await storageRef.getDownloadURL());
      break;

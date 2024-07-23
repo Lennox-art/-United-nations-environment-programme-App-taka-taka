@@ -3,8 +3,10 @@ import 'dart:io';
 import 'package:firebase_auth/firebase_auth.dart';
 import 'package:flutter/material.dart';
 import 'package:food/main.dart';
+import 'package:food/view/widgets/reusable_widgets.dart';
 import 'package:food/view_model/auth_service.dart';
 import 'package:food/view_model/cloud_storage.dart';
+import 'package:food/view_model/firestore_service.dart';
 import 'package:image_picker/image_picker.dart';
 
 class EditProfilePage extends StatefulWidget {
@@ -17,9 +19,10 @@ class EditProfilePage extends StatefulWidget {
 }
 
 class _EditProfilePageState extends State<EditProfilePage> {
-  late final _nameController = TextEditingController(text: _auth.userNotifier.value?.displayName);
+  late final _nameController = TextEditingController(text: _firestoreService.currentUser.value?.displayName);
   final AuthService _auth = getIt<AuthService>();
   final FirebaseCloudStorage _storage = getIt<FirebaseCloudStorage>();
+  final FirestoreService _firestoreService = getIt<FirestoreService>();
 
 
   @override
@@ -33,7 +36,7 @@ class _EditProfilePageState extends State<EditProfilePage> {
 
 
     return ValueListenableBuilder(
-        valueListenable: _auth.userNotifier,
+        valueListenable: _firestoreService.currentUser,
         builder: (_, user,__) {
           if (user == null) {
             return TextButton(
@@ -55,80 +58,92 @@ class _EditProfilePageState extends State<EditProfilePage> {
               mainAxisAlignment: MainAxisAlignment.spaceEvenly,
               crossAxisAlignment: CrossAxisAlignment.center,
               children: [
-                Stack(
-                  children: [
-                    CircleAvatar(
-                      radius: 60,
-                      backgroundImage: NetworkImage(user.photoURL ?? ""),
-                    ),
-                    Positioned(
-                      bottom: 0,
-                      right: 0,
-                      child: IconButton(
-                        icon: const Icon(Icons.camera_alt, color: Colors.blue, size: 30),
-                        onPressed: () {
-                          showDialog(
-                            context: context,
-                            builder: (_) => PickImageSourceDialog(
-                              onPickImage: (file) {
-                                _storage.uploadFile(
-                                  ref: "/images/profile/${user.uid}/profile_image.${file.name.split(".").last}",
 
-                                  uploadData: (ref) async {
-                                    var data = await file.readAsBytes();
-                                    await ref.putData(data);
-                                  },
-                                  onSuccess: (photoUrl) {
-                                    print("Photo success == $photoUrl");
-                                    _auth.changeProfilePicture(photoUrl);
-                                    setState(() {});
-                                    Navigator.of(context).pop();
-                                  },
-                                  onFailure: (error) {
-                                    print("Photo failed == $error");
-                                    Navigator.of(context).pop();
-                                  }
-                                );
-                              },
-                            ),
-                          );
+                Expanded(
+                  flex: 1,
+                  child: Stack(
+                    alignment: Alignment.center,
+                    children: [
+
+                      CircularPhoto(
+                        url: user.photoUrl,
+                        radius: 200,
+                      ),
+
+                      Align(
+                        alignment: Alignment.bottomCenter,
+                        child: IconButton(
+                          icon: const Icon(Icons.camera_alt, color: Colors.blue, size: 30),
+                          onPressed: () {
+                            showDialog(
+                              context: context,
+                              builder: (_) => PickImageSourceDialog(
+                                onPickImage: (file) {
+                                  _storage.uploadFile(
+                                      ref: "/images/profile/${user.id}/profile_image.${file.name.split(".").last}",
+
+                                      uploadData: (ref) async {
+                                        var data = await file.readAsBytes();
+                                        return await ref.putData(data);
+                                      },
+                                      onSuccess: (photoUrl) {
+                                        print("Photo success == $photoUrl");
+                                        _firestoreService.saveUser(user..photoUrl = photoUrl);
+                                        setState(() {});
+                                        Navigator.of(context).pop();
+                                      },
+                                      onFailure: (error) {
+                                        print("Photo failed == $error");
+                                        Navigator.of(context).pop();
+                                      }
+                                  );
+                                },
+                              ),
+                            );
+                          },
+                        ),
+                      ),
+
+                    ],
+                  ),
+                ),
+
+                Expanded(
+                  flex: 2,
+                  child: Column(
+                    children: [
+                      TextField(
+                        controller: _nameController,
+                        onChanged: (s) {
+                          setState(() {
+
+                          });
                         },
+                        decoration: InputDecoration(
+                          labelText: 'Name',
+                          prefixIcon: const Icon(Icons.person),
+                          suffix: Visibility(
+                            visible: user.displayName != _nameController.text,
+                            child: IconButton(onPressed: () {
+                              setState(() {
+                                _firestoreService.saveUser(user..displayName = _nameController.text);
+                              });
+                            }, icon: const Icon(Icons.check)),
+                          )
+                        ),
                       ),
-                    ),
-                  ],
-                ),
-                Column(
-                  children: [
-                    TextField(
-                      controller: _nameController,
-                      onChanged: (s) {
-                        setState(() {
+                      const SizedBox(height: 10),
 
-                        });
-                      },
-                      decoration: InputDecoration(
-                        labelText: 'Name',
-                        prefixIcon: Icon(Icons.person),
-                        suffix: Visibility(
-                          visible: user?.displayName != _nameController.text,
-                          child: IconButton(onPressed: () {
-                            setState(() {
-                              _auth.changeDisplayName(_nameController.text);
-                            });
-                          }, icon: Icon(Icons.check)),
-                        )
+                      ListTile(
+                        leading: const Icon(Icons.mail),
+                        title: Text(_auth.userNotifier.value?.email ?? 'no email'),
                       ),
-                    ),
-                    SizedBox(height: 10),
 
-                    ListTile(
-                      leading: Icon(Icons.mail),
-                      title: Text(user?.email ?? 'no email'),
-                    ),
-
-                    SizedBox(height: 20),
-                  ],
+                      SizedBox(height: 20),
+                    ],
+                  ),
                 ),
+
               ],
             ),
           ),
