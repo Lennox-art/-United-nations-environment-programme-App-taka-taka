@@ -31,6 +31,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
   }
 
   Future<void> _captureImage() async {
+
     final capturedFile = await _picker.pickImage(source: ImageSource.camera);
     setState(() {
       _imageFile = capturedFile;
@@ -38,10 +39,8 @@ class _NewPostScreenState extends State<NewPostScreen> {
   }
 
   Future<void> _submitPost() async {
-
-
     if (_imageFile == null || _descriptionController.text.isEmpty) {
-      // Show an error message
+// Show an error message
       ScaffoldMessenger.of(context).showSnackBar(
         const SnackBar(
           content: Text('Please select an image and enter a description.'),
@@ -64,179 +63,170 @@ class _NewPostScreenState extends State<NewPostScreen> {
 
     loadingNotifier.value = true;
 
-    //post to bucket
+//post to bucket
     _storage.uploadFile(
-        ref: "/posts/$postId",
-        uploadData: (storageRef) async {
-          var data = await _imageFile!.readAsBytes();
-          return await storageRef.putData(data);
-        },
-        onSuccess: (photoUrl) async {
-          loadingNotifier.value = false;
-          print("Photo success == $photoUrl");
+      ref: "/posts/$postId",
+      uploadData: (storageRef) async {
+        var data = await _imageFile!.readAsBytes();
+        return await storageRef.putData(data);
+      },
+      onSuccess: (photoUrl) async {
+        print("Photo success == $photoUrl");
 
-          //post to firestore
-          String content = _descriptionController.text;
-          PostsModel posts = PostsModel(
-            id: postId,
-            postedByUserId: postedByUserId!,
-            createdAt: DateTime.now(),
-            content: content,
-            imageUrl: photoUrl,
-          );
+//post to firestore
+        String content = _descriptionController.text;
+        PostsModel posts = PostsModel(
+          id: postId,
+          postedByUserId: postedByUserId!,
+          createdAt: DateTime.now(),
+          content: content,
+          imageUrl: photoUrl,
+        );
 
-          _firestore.savePost(posts)
-          .then((_) {
+        _firestore.savePost(posts).then(
+          (_) {
+            loadingNotifier.value = false;
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Posted successfully'),
               ),
             );
 
-            // Handle post submission logic here
+// Handle post submission logic here
             Navigator.pop(context);
-          },).catchError((e, trace) {
+          },
+        ).catchError(
+          (e, trace) {
+            loadingNotifier.value = false;
             debugPrint("Post failed == $e");
             ScaffoldMessenger.of(context).showSnackBar(
               const SnackBar(
                 content: Text('Something went wrong'),
               ),
             );
-          },)
-          ;
-
-
-
-
-        },
-        onFailure: (error) {
-          loadingNotifier.value = false;
-          debugPrint("Photo failed == $error");
-          ScaffoldMessenger.of(context).showSnackBar(
-            const SnackBar(
-              content: Text('Something went wrong'),
-            ),
-          );
-        },
+          },
         );
-
-
-
-
+      },
+      onFailure: (error) {
+        loadingNotifier.value = false;
+        debugPrint("Photo failed == $error");
+        ScaffoldMessenger.of(context).showSnackBar(
+          const SnackBar(
+            content: Text('Something went wrong'),
+          ),
+        );
+      },
+    );
   }
-
 
   @override
   Widget build(BuildContext context) {
     return ValueListenableBuilder(
         valueListenable: loadingNotifier,
         builder: (_, loading, __) {
-        return Scaffold(
-          appBar: AppBar(
-            title: const Text('New Post'),
-          ),
-          body: Stack(
-            children: [
-
-              Visibility(
-                visible: loading,
-                child: const LoadingIndicator(),
-              ),
-
-              Padding(
-                padding: const EdgeInsets.all(16.0),
-                child: Flex(
-                  direction: Axis.vertical,
-                  crossAxisAlignment: CrossAxisAlignment.stretch,
-                  mainAxisAlignment: MainAxisAlignment.spaceAround,
-                  children: [
-                    Expanded(
-                      child: Builder(
-                        builder: (context) {
-                          if(_imageFile == null) {
+          return Scaffold(
+            appBar: AppBar(
+              title: const Text('New Post'),
+            ),
+            body: Stack(
+              children: [
+                Visibility(
+                  visible: loading,
+                  child: const LoadingIndicator(),
+                ),
+                Padding(
+                  padding: const EdgeInsets.all(16.0),
+                  child: Flex(
+                    direction: Axis.vertical,
+                    crossAxisAlignment: CrossAxisAlignment.stretch,
+                    mainAxisAlignment: MainAxisAlignment.spaceAround,
+                    children: [
+                      Expanded(
+                        child: Builder(builder: (context) {
+                          if (_imageFile == null) {
                             return const Text('No image selected.');
                           }
                           return FutureBuilder(
-                              future: _imageFile!.readAsBytes(),
-                              builder: (_, snap) {
-                                if (snap.connectionState != ConnectionState.done) {
-                                  return const LoadingIndicator();
-                                }
+                            future: _imageFile!.readAsBytes(),
+                            builder: (_, snap) {
+                              if (snap.connectionState !=
+                                  ConnectionState.done) {
+                                return const LoadingIndicator();
+                              }
 
-                                if (snap.hasData) {
-                                  return Image.memory(snap.requireData);
-                                }
+                              if (snap.hasData) {
+                                return Image.memory(snap.requireData);
+                              }
 
-                                if (snap.hasError) {
-                                  return Text(snap.error.toString());
-                                }
+                              if (snap.hasError) {
+                                return Text(snap.error.toString());
+                              }
 
-                                return Text("Pick an image");
-                              },);
-                        }
+                              return Text("Pick an image");
+                            },
+                          );
+                        }),
                       ),
-                    ),
-                    const SizedBox(height: 8.0),
-                    TextField(
-                      controller: _descriptionController,
-                      decoration: InputDecoration(
-                        labelText: 'Description',
-                        border: OutlineInputBorder(),
+                      const SizedBox(height: 8.0),
+                      TextField(
+                        controller: _descriptionController,
+                        decoration: InputDecoration(
+                          labelText: 'Description',
+                          border: OutlineInputBorder(),
+                        ),
+                        maxLines: 3,
                       ),
-                      maxLines: 3,
-                    ),
-                    const SizedBox(height: 16.0),
-                    Flex(
-                      direction: Axis.horizontal,
-                      mainAxisAlignment: MainAxisAlignment.spaceEvenly,
-                      crossAxisAlignment: CrossAxisAlignment.center,
-                      children: [
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Visibility(
-                              visible: !loading,
-                              replacement: LoadingIndicator(),
-                              child: ElevatedButton.icon(
-                                onPressed: _pickImage,
-                                label: Text('Gallery'),
+                      const SizedBox(height: 16.0),
+                      Flex(
+                        direction: Axis.horizontal,
+                        mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                        crossAxisAlignment: CrossAxisAlignment.center,
+                        children: [
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Visibility(
+                                visible: !loading,
+                                replacement: LoadingIndicator(),
+                                child: ElevatedButton.icon(
+                                  onPressed: _pickImage,
+                                  icon: const Icon(Icons.photo),
+                                  label: Text('Gallery'),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                        Flexible(
-                          child: Padding(
-                            padding: const EdgeInsets.all(8.0),
-                            child: Visibility(
-                              visible: !loading,
-                              replacement: LoadingIndicator(),
-                              child: ElevatedButton.icon(
-                                icon: Icon(Icons.camera_alt),
-                                onPressed: _pickImage,
-                                label: Text('Camera'),
+                          Flexible(
+                            child: Padding(
+                              padding: const EdgeInsets.all(8.0),
+                              child: Visibility(
+                                visible: !loading,
+                                replacement: LoadingIndicator(),
+                                child: ElevatedButton.icon(
+                                  icon: Icon(Icons.camera_alt),
+                                  onPressed: _captureImage,
+                                  label: Text('Camera'),
+                                ),
                               ),
                             ),
                           ),
-                        ),
-                      ],
-                    ),
-                    SizedBox(height: 16.0),
-
-                    Visibility(
-                      visible: !loading,
-                      replacement: LoadingIndicator(),
-                      child: ElevatedButton.icon(
-                        onPressed: _submitPost,
-                        label: Text('Submit Post'),
+                        ],
                       ),
-                    ),
-                  ],
+                      SizedBox(height: 16.0),
+                      Visibility(
+                        visible: !loading,
+                        replacement: LoadingIndicator(),
+                        child: ElevatedButton.icon(
+                          onPressed: _submitPost,
+                          label: Text('Submit Post'),
+                        ),
+                      ),
+                    ],
+                  ),
                 ),
-              ),
-            ],
-          ),
-        );
-      }
-    );
+              ],
+            ),
+          );
+        });
   }
 }
