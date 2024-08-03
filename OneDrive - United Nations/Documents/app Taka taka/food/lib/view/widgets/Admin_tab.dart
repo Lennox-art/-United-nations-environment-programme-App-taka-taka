@@ -100,7 +100,7 @@ class AdminTab extends StatelessWidget {
   }*/
 
   Widget _buildMostVotedPostsSection() {
-    return FutureBuilder<List<PostsModel>>(
+    return FutureBuilder<List<UserPostsModel>>(
       future: _firestoreService.getMostVotedPosts(),
       builder: (context, snapshot) {
         if (!snapshot.hasData) {

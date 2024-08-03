@@ -45,6 +45,8 @@ Future<User?> getUserData (String userId) async {
   return data;
 }
 
+
+
 Future<Uint8List?> loadNetworkImage(String? path) async {
   if (path == null) return null;
 

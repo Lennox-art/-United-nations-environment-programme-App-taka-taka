@@ -13,16 +13,16 @@ class FirestoreService {
   }) =>
       "user/";
 
-  Future<void> savePost(PostsModel post) async {
+  Future<void> savePost(UserPostsModel post) async {
     await _firestore.collection("posts").doc(post.id).set(post.toJson());
   }
 
-  Future<List<PostsModel>> getPosts() async {
+  Future<List<UserPostsModel>> getPosts() async {
     var data = await _firestore.collection("posts").orderBy('created_at', descending: true).get();
-    return data.docs.map((d) => PostsModel.fromJson(d.data())).toList();
+    return data.docs.map((d) => UserPostsModel.fromJson(d.data())).toList();
   }
 
-  Future<List<PostsModel>> getMostVotedPosts({int limit = 3}) async {
+  Future<List<UserPostsModel>> getMostVotedPosts({int limit = 3}) async {
     var data = await _firestore
         .collection('posts')
         .orderBy('votes', descending: true)
@@ -30,7 +30,7 @@ class FirestoreService {
         .limit(limit)
         .get();
 
-    return data.docs.map((d) => PostsModel.fromJson(d.data())).toList();
+    return data.docs.map((d) => UserPostsModel.fromJson(d.data())).toList();
   }
 
   Future<List<User>> getAllUsers() async {
@@ -40,7 +40,6 @@ class FirestoreService {
         .get();
 
     return data.docs.map((d) => User.fromJson(d.data())).toList();
-
   }
 
   Future<void> saveUser(User user) async {
@@ -54,4 +53,18 @@ class FirestoreService {
 
     return User.fromJson(document.data()!);
   }
+
+  Future<void> saveAdminPost(AdminPost adminPost) async {
+    return _firestore.collection('admin_posts').doc(adminPost.id).set(adminPost.toJson());
+  }
+
+  Future<List<AdminPost>> fetchAdminPosts() async {
+    var data = await _firestore
+        .collection('admin_posts')
+        // .orderBy('postedAt', descending: true)
+        .get();
+
+    return data.docs.map((d) => AdminPost.fromJson(d.data())).toList();
+  }
+
 }

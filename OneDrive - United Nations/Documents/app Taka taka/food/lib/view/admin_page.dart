@@ -147,7 +147,7 @@ class MVPSection extends StatefulWidget {
 class _MVPSectionState extends State<MVPSection> {
   @override
   Widget build(BuildContext context) {
-    return FutureBuilder<List<PostsModel>>(
+    return FutureBuilder<List<UserPostsModel>>(
       future: getIt<FirestoreService>().getMostVotedPosts(),
       builder: (context, snapshot) {
         if (snapshot.connectionState != ConnectionState.done) {
@@ -162,13 +162,13 @@ class _MVPSectionState extends State<MVPSection> {
           }, child: Icon(Icons.replay));
         }
 
-        List<PostsModel> posts = snapshot.requireData;
+        List<UserPostsModel> posts = snapshot.requireData;
 //        posts.sort((a, b) => b.votes.length.compareTo(a.votes.length));
 
         return ListView.builder(
           itemCount: posts.length,
           itemBuilder: (_, i) {
-            PostsModel p = posts[i];
+            UserPostsModel p = posts[i];
             return FutureBuilder(
                 future: getUserData(p.postedByUserId),
                 builder: (context, snap) {
@@ -271,7 +271,7 @@ class _AllUsersTabState extends State<AllUsersTab> {
 
 class MVPItem extends StatelessWidget {
   final User? user;
-  final PostsModel postsModel;
+  final UserPostsModel postsModel;
   final Function()? onVote;
 
   const MVPItem({

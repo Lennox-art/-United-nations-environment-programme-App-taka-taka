@@ -1,5 +1,13 @@
+enum AdminPostType {
+  estimation('Estimate Post'),
+  congratulatory('Congratulatory Post');
 
-class PostsModel {
+  final String value;
+
+  const AdminPostType(this.value);
+}
+
+class UserPostsModel {
   final String id;
   final String postedByUserId;
   final DateTime createdAt;
@@ -7,14 +15,14 @@ class PostsModel {
   final String imageUrl;
   final List<String> votes;
 
-  const PostsModel({
-      required this.id,
-      required this.postedByUserId,
-      required this.createdAt,
-      required this.content,
-      required this.imageUrl,
-       this.votes = const [],
-      });
+  const UserPostsModel({
+    required this.id,
+    required this.postedByUserId,
+    required this.createdAt,
+    required this.content,
+    required this.imageUrl,
+    this.votes = const [],
+  });
 
   Map<String, dynamic> toJson() {
     return {
@@ -27,8 +35,11 @@ class PostsModel {
     };
   }
 
-  factory PostsModel.fromJson(Map<String, dynamic> json) {
-    return PostsModel(
+  @override
+  String toString() => toJson().toString();
+
+  factory UserPostsModel.fromJson(Map<String, dynamic> json) {
+    return UserPostsModel(
       id: json['id'],
       postedByUserId: json['posted_by_user_id'],
       createdAt: DateTime.parse(json['created_at']),
@@ -37,8 +48,6 @@ class PostsModel {
       votes: List<String>.from(json['votes']),
     );
   }
-
-
 }
 
 class User {
@@ -81,6 +90,120 @@ class User {
 
 const List<UserRoles> allRoles = UserRoles.values;
 
-enum UserRoles {
-  user, admin
+enum UserRoles { user, admin }
+
+enum Metric {
+  kgs, tonnes
+}
+
+class PollData {
+  String userId;
+  double value;
+  DateTime timestamp;
+  Metric metric;
+
+  PollData({
+    required this.userId,
+    required this.value,
+    required this.timestamp,
+    required this.metric,
+  });
+
+  // Convert a PollData object into a map
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'value': value,
+      'timestamp': timestamp.toIso8601String(),
+      'metric': metric.toString().split('.').last,
+    };
+  }
+
+  // Convert a map into a PollData object
+  factory PollData.fromJson(Map<String, dynamic> json) {
+    return PollData(
+      userId: json['userId'],
+      value: json['value'],
+      timestamp: DateTime.parse(json['timestamp']),
+      metric: Metric.values.firstWhere((e) => e.toString().split('.').last == json['metric']),
+    );
+  }
+}
+
+
+class AdminPost {
+  String id;
+  String content;
+  AdminPostType postType; // 'Estimate Post' or 'Congratulatory Post'
+  Map<String, PollData> userPollData; // User estimates in kgs/tonnes
+  List<UserComment> comments;
+  DateTime postedAt;
+
+  AdminPost({
+    required this.id,
+    required this.content,
+    required this.postType,
+    required this.userPollData,
+    required this.comments,
+    required this.postedAt,
+  });
+
+  // Convert a AdminPost object into a map
+  Map<String, dynamic> toJson() {
+    return {
+      'id': id,
+      'content': content,
+      'post_type': postType.name,
+      'user_poll_data': userPollData,
+      'comments': comments.map((comment) => comment.toJson()).toList(),
+      'posted_at': postedAt.toIso8601String(),
+    };
+  }
+
+  @override
+  String toString() => toJson().toString();
+
+  // Convert a map into a AdminPost object
+  factory AdminPost.fromJson(Map<String, dynamic> json) {
+    return AdminPost(
+      id: json['id'],
+      content: json['content'],
+      postType: AdminPostType.values.where((e) => json['post_type'] == e.name).first,
+      postedAt: DateTime.parse(json['posted_at']),
+      userPollData: Map<String, PollData>.from(json['user_poll_data']),
+      comments: (json['comments'] as List)
+          .map((commentJson) => UserComment.fromJson(commentJson))
+          .toList(),
+    );
+  }
+}
+
+class UserComment {
+  String userId;
+  String comment;
+  DateTime timestamp;
+
+  UserComment({
+    required this.userId,
+    required this.comment,
+    required this.timestamp,
+  });
+
+  // Convert a UserComment object into a map
+  Map<String, dynamic> toJson() {
+    return {
+      'userId': userId,
+      'comment': comment,
+      'timestamp': timestamp.toIso8601String(),
+    };
+  }
+
+  // Convert a map into a UserComment object
+  factory UserComment.fromJson(Map<String, dynamic> json) {
+    return UserComment(
+      userId: json['userId'],
+      comment: json['comment'],
+      timestamp: DateTime.parse(json['timestamp']),
+    );
+  }
 }

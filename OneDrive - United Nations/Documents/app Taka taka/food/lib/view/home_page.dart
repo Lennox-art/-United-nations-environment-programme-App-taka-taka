@@ -19,6 +19,8 @@ class _HomeTabState extends State<HomeTab> {
   final AuthService _authService = getIt<AuthService>();
   final FirestoreService _firestore = getIt<FirestoreService>();
 
+  // Future<Map<, List<Foo>>> waitAll(Map<String, Iterable<Future<Foo>>> map) async =>
+  //     Map.fromIterables(map.keys.toList(), await Future.wait(map.values.map(Future.wait)));
 
   @override
   void initState() {
@@ -63,12 +65,11 @@ class _HomeTabState extends State<HomeTab> {
                           Column(
                             crossAxisAlignment: CrossAxisAlignment.start,
                             children: [
-                              const Text('Welcome back!',
+                              const Text('Welcome!',
                                   style: TextStyle(fontSize: 16)),
                               Row(
                                 children: [
-                                  Text(
-                                      user?.displayName ?? '',
+                                  Text(user?.displayName ?? '',
                                       style: const TextStyle(
                                           fontWeight: FontWeight.bold,
                                           fontSize: 18)),
@@ -111,54 +112,43 @@ class _HomeTabState extends State<HomeTab> {
         ),
         Expanded(
           child: FutureBuilder(
-            future: _firestore.getPosts(),
+            future: Future.wait<dynamic>(
+                [_firestore.getPosts(), _firestore.fetchAdminPosts()]),
             builder: (_, snap) {
               if (snap.connectionState != ConnectionState.done) {
                 return const LoadingIndicator();
               }
 
-              List<PostsModel> data = snap.data ?? [];
+              List<dynamic> data = snap.data ?? [];
               if (data.isEmpty) {
                 return const Text("No posts available");
               }
 
+              List<dynamic> combinedList = data.expand((list) => list).toList();
+
               return ListView.builder(
-                itemCount: data.length,
+                itemCount: combinedList.length,
                 itemBuilder: (_, i) {
-                  PostsModel p = data[i];
+                  dynamic p = combinedList[i];
+                  print( "index: $i");
+                  print( "data: ${p.toString()}");
+                  print( "${p.runtimeType} = Runtime Type");
+                  print( "${p is UserPostsModel} = PostsModel");
+                  print( "${p is AdminPost} = AdminPost");
 
+                  if (p is UserPostsModel) {
+                    return UserPostWidget(
+                      p: p,
+                      firestore: _firestore,
+                      authService: _authService,
+                    );
+                  }
 
+                  if(p is AdminPost) {
+                    return AdminPostWidget(p: p);
+                  }
 
-                  return FutureBuilder(
-                    future: getUserData(p.postedByUserId),
-                    builder: (context, snap) {
-
-                      if(snap.connectionState != ConnectionState.done) {
-                        return const LoadingIndicator();
-                      }
-
-                      User? user = snap.data;
-
-                      return Post(
-                        user: user,
-                        postsModel: p,
-                        onVote: () {
-                          String? userId = _authService.userNotifier.value?.uid;
-                          if (userId == null) return;
-                          print("User id present");
-                          if (p.votes.contains(userId)) return;
-
-                          print("New vote");
-
-                          p.votes.add(userId);
-
-                          _firestore.savePost(p);
-
-                          print("Updated post");
-                        },
-                      );
-                    }
-                  );
+                  return Text("Unknown type");
                 },
               );
             },
@@ -169,9 +159,103 @@ class _HomeTabState extends State<HomeTab> {
   }
 }
 
+class UserPostWidget extends StatelessWidget {
+  const UserPostWidget({
+    required this.p,
+    required this.firestore,
+    required this.authService,
+    super.key,
+  });
+
+  final AuthService authService;
+  final FirestoreService firestore;
+  final UserPostsModel p;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: getUserData(p.postedByUserId),
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const LoadingIndicator();
+          }
+
+          User? user = snap.data;
+
+          return Post(
+            user: user,
+            postsModel: p,
+            onVote: () {
+              String? userId = authService.userNotifier.value?.uid;
+              if (userId == null) return;
+              print("User id present");
+              if (p.votes.contains(userId)) return;
+
+              print("New vote");
+
+              p.votes.add(userId);
+
+              firestore.savePost(p);
+
+              print("Updated post");
+            },
+          );
+        });
+  }
+}
+
+class AdminPostWidget extends StatelessWidget {
+  const AdminPostWidget({
+    required this.p,
+    super.key,
+  });
+
+  final AdminPost p;
+
+  @override
+  Widget build(BuildContext context) {
+    return switch(p.postType) {
+      AdminPostType.estimation => EstimationAdminPostWidget(p: p),
+      AdminPostType.congratulatory => CongratulatoryAdminPostWidget(p: p),
+    };
+  }
+}
+
+class EstimationAdminPostWidget extends StatelessWidget {
+  const EstimationAdminPostWidget({required this.p, super.key});
+
+  final AdminPost p;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(p.content),
+      subtitle: Text(p.postType.value),
+    );
+  }
+}
+
+class CongratulatoryAdminPostWidget extends StatelessWidget {
+  const CongratulatoryAdminPostWidget({required this.p, super.key});
+
+  final AdminPost p;
+
+
+  @override
+  Widget build(BuildContext context) {
+    return ListTile(
+      title: Text(p.content),
+      subtitle: Text(p.postType.value),
+    );
+  }
+}
+
+
+
 class Post extends StatelessWidget {
   final User? user;
-  final PostsModel postsModel;
+  final UserPostsModel postsModel;
   final Function()? onVote;
 
   const Post({

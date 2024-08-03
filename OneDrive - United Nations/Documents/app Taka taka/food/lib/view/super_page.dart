@@ -1,6 +1,7 @@
 import 'package:flutter/material.dart';
 import 'package:food/main.dart';
 import 'package:food/model/models.dart';
+import 'package:food/routes/routes.dart';
 import 'package:food/theme/themes.dart';
 import 'package:food/view/admin_page.dart';
 import 'package:food/view/home_page.dart';
@@ -133,10 +134,21 @@ class _SuperPageScreenState extends State<SuperPageScreen> {
             visible: _selectedPage == SuperPages.home,
             child: FloatingActionButton(
               onPressed: () {
-                Navigator.push(
-                  context,
-                  MaterialPageRoute(builder: (context) => NewPostScreen()),
-                );
+                switch(store.currentUser.value?.role) {
+                  case UserRoles.user:
+                  Navigator.of(context).pushNamed(Routes.newPost.path);
+                  break;
+
+                  case UserRoles.admin:
+                    Navigator.of(context).pushNamed(Routes.adminNewPost.path);
+                    break;
+
+                  default:
+                    break;
+
+                }
+
+
               },
               child: const Icon(Icons.add),
             ) ,

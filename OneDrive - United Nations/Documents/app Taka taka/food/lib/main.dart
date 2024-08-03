@@ -2,6 +2,7 @@ import 'package:firebase_core/firebase_core.dart';
 import 'package:flutter/material.dart';
 import 'package:food/routes/routes.dart';
 import 'package:food/theme/themes.dart';
+import 'package:food/view/admin_post_screen.dart';
 import 'package:food/view/edit_profile_page.dart';
 import 'package:food/view/new_post_screen.dart';
 
@@ -48,6 +49,7 @@ class MyApp extends StatelessWidget {
         Routes.superPage.path: (_) => SuperPageScreen(),
         Routes.newPost.path: (_) => NewPostScreen(),
         Routes.editProfile.path: (_) => const EditProfilePage(),
+        Routes.adminNewPost.path: (_) =>  AdminPostScreen(),
 
       },
     );

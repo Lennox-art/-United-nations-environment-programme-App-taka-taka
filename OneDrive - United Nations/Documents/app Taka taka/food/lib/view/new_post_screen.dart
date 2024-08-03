@@ -75,7 +75,7 @@ class _NewPostScreenState extends State<NewPostScreen> {
 
 //post to firestore
         String content = _descriptionController.text;
-        PostsModel posts = PostsModel(
+        UserPostsModel posts = UserPostsModel(
           id: postId,
           postedByUserId: postedByUserId!,
           createdAt: DateTime.now(),
