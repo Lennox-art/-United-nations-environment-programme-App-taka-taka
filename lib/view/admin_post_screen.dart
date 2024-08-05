@@ -34,6 +34,7 @@ class _AdminPostScreenState extends State<AdminPostScreen> {
         postType: selectedPostType!,
         userPollData: {},
         comments: [],
+        postedBy: _firestoreService.currentUser.value!.id,
         postedAt: DateTime.now(),
       );
 
@@ -72,6 +73,7 @@ class _AdminPostScreenState extends State<AdminPostScreen> {
             ),
             SizedBox(height: 16),
             DropdownButton<AdminPostType>(
+              hint: Text("Choose type of post"),
               value: selectedPostType,
               items: AdminPostType.values.map((value) {
                 return DropdownMenuItem<AdminPostType>(

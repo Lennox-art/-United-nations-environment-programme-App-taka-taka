@@ -80,7 +80,7 @@ class User {
   factory User.fromJson(Map<String, dynamic> json) {
     return User(
       id: json['id'] as String,
-      role: UserRoles.values.where((e) => json['role'] == e.name).first,
+      role: UserRoles.values.firstWhere((e) => json['role'] == e.name),
       photoUrl: json['photo_url'] as String?,
       displayName: json['display_name'] as String,
       createdAt: DateTime.parse(json['created_at'] as String),
@@ -92,9 +92,7 @@ const List<UserRoles> allRoles = UserRoles.values;
 
 enum UserRoles { user, admin }
 
-enum Metric {
-  kgs, tonnes
-}
+enum Metric { kgs, tonnes }
 
 class PollData {
   String userId;
@@ -128,12 +126,15 @@ class PollData {
       metric: Metric.values.firstWhere((e) => e.toString().split('.').last == json['metric']),
     );
   }
-}
 
+  @override
+  String toString() => toJson().toString();
+}
 
 class AdminPost {
   String id;
   String content;
+  String postedBy;
   AdminPostType postType; // 'Estimate Post' or 'Congratulatory Post'
   Map<String, PollData> userPollData; // User estimates in kgs/tonnes
   List<UserComment> comments;
@@ -142,19 +143,21 @@ class AdminPost {
   AdminPost({
     required this.id,
     required this.content,
+    required this.postedBy,
     required this.postType,
     required this.userPollData,
     required this.comments,
     required this.postedAt,
   });
 
-  // Convert a AdminPost object into a map
+  // Convert an AdminPost object into a map
   Map<String, dynamic> toJson() {
     return {
       'id': id,
       'content': content,
       'post_type': postType.name,
-      'user_poll_data': userPollData,
+      'posted_by': postedBy,
+      'user_poll_data': userPollData.map((key, value) => MapEntry(key, value.toJson())),
       'comments': comments.map((comment) => comment.toJson()).toList(),
       'posted_at': postedAt.toIso8601String(),
     };
@@ -163,14 +166,16 @@ class AdminPost {
   @override
   String toString() => toJson().toString();
 
-  // Convert a map into a AdminPost object
+  // Convert a map into an AdminPost object
   factory AdminPost.fromJson(Map<String, dynamic> json) {
     return AdminPost(
       id: json['id'],
       content: json['content'],
-      postType: AdminPostType.values.where((e) => json['post_type'] == e.name).first,
+      postType: AdminPostType.values.firstWhere((e) => json['post_type'] == e.name),
       postedAt: DateTime.parse(json['posted_at']),
-      userPollData: Map<String, PollData>.from(json['user_poll_data']),
+      postedBy: json['posted_by'],
+      userPollData: (json['user_poll_data'] as Map<String, dynamic>)
+          .map((key, value) => MapEntry(key, PollData.fromJson(value))),
       comments: (json['comments'] as List)
           .map((commentJson) => UserComment.fromJson(commentJson))
           .toList(),

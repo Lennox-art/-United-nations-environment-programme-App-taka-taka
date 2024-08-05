@@ -44,7 +44,7 @@ class SuperPageScreen extends StatefulWidget {
 class _SuperPageScreenState extends State<SuperPageScreen> {
 
   final FirestoreService store = getIt<FirestoreService>();
-  SuperPages get _defaultPage => SuperPages.profile;
+  SuperPages get _defaultPage => SuperPages.home;
   late SuperPages _selectedPage = _defaultPage;
   late Future<List<SuperPages>> _pages;
 

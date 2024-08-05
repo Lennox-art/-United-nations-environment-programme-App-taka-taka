@@ -18,7 +18,10 @@ class FirestoreService {
   }
 
   Future<List<UserPostsModel>> getPosts() async {
-    var data = await _firestore.collection("posts").orderBy('created_at', descending: true).get();
+    var data = await _firestore
+        .collection("posts")
+        .orderBy('created_at', descending: true)
+        .get();
     return data.docs.map((d) => UserPostsModel.fromJson(d.data())).toList();
   }
 
@@ -26,7 +29,7 @@ class FirestoreService {
     var data = await _firestore
         .collection('posts')
         .orderBy('votes', descending: true)
-        // .orderBy('created_at', descending: true)
+        .orderBy('created_at', descending: true)
         .limit(limit)
         .get();
 
@@ -55,16 +58,28 @@ class FirestoreService {
   }
 
   Future<void> saveAdminPost(AdminPost adminPost) async {
-    return _firestore.collection('admin_posts').doc(adminPost.id).set(adminPost.toJson());
+    return _firestore
+        .collection('admin_posts')
+        .doc(adminPost.id)
+        .set(adminPost.toJson());
   }
 
   Future<List<AdminPost>> fetchAdminPosts() async {
     var data = await _firestore
         .collection('admin_posts')
-        // .orderBy('postedAt', descending: true)
+        .orderBy('posted_at', descending: true)
         .get();
 
     return data.docs.map((d) => AdminPost.fromJson(d.data())).toList();
   }
 
+  Future<List<AdminPost>> wasteEstimationPosts() async {
+    var data = await _firestore
+        .collection('admin_posts')
+        .where('post_type', isEqualTo: AdminPostType.estimation.name)
+        .orderBy('posted_at', descending: true)
+        .get();
+
+    return data.docs.map((d) => AdminPost.fromJson(d.data())).toList();
+  }
 }

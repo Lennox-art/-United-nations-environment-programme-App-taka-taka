@@ -1,9 +1,6 @@
 import 'package:flutter/material.dart';
-import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:food/main.dart';
 import 'package:food/model/models.dart';
-import 'package:food/model/models.dart';
-import 'package:food/view/home_page.dart';
 import 'package:food/view/widgets/reusable_widgets.dart';
 import 'package:food/view_model/firestore_service.dart'; // Assuming you have models defined for Post and Estimate
 import 'package:food/view_model/functions.dart';
@@ -11,7 +8,8 @@ import 'package:timeago/timeago.dart' as timeago;
 
 enum AdminSections {
   users("Users", Icons.person),
-  mvp("MVP", Icons.celebration);
+  mvp("MVP", Icons.celebration),
+  wasteEstimation("Waste estimation", Icons.delete_forever_sharp);
 
   final String value;
   final IconData icon;
@@ -51,6 +49,7 @@ class AdminTab extends StatelessWidget {
                     .map((e) => switch (e) {
                           AdminSections.users => AllUsersTab(),
                           AdminSections.mvp => MVPSection(),
+                      AdminSections.wasteEstimation => WasteEstimation(),
                         },)
                     .toList(),
               ),
@@ -334,6 +333,67 @@ class MVPItem extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class WasteEstimation extends StatefulWidget {
+  const WasteEstimation({super.key});
+
+  @override
+  State<WasteEstimation> createState() => _WasteEstimationState();
+}
+
+class _WasteEstimationState extends State<WasteEstimation> {
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder<List<AdminPost>>(
+      future: getIt<FirestoreService>().wasteEstimationPosts(),
+      builder: (context, snapshot) {
+        if (snapshot.connectionState != ConnectionState.done) {
+          return const LoadingIndicator();
+        }
+
+        if(!snapshot.hasData) {
+          return ElevatedButton(onPressed: () {
+            setState(() {
+
+            });
+          }, child: Icon(Icons.replay));
+        }
+
+        List<AdminPost> posts = snapshot.requireData;
+//        posts.sort((a, b) => b.votes.length.compareTo(a.votes.length));
+
+        return ListView.builder(
+          itemCount: posts.length,
+          itemBuilder: (_, i) {
+            AdminPost p = posts[i];
+            return ListTile(
+              title: Text(p.content),
+              subtitle: Column(
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text("Submissions"),
+                  Text("List of estimated"),
+                  Column(
+                    crossAxisAlignment: CrossAxisAlignment.center,
+                    mainAxisAlignment: MainAxisAlignment.start,
+                    mainAxisSize: MainAxisSize.min,
+                    children: p.userPollData.values.map((poll) {
+                      return ListTile(
+                        title: Text("UserId: ${poll.userId}"),
+                        subtitle: Text("${poll.value} ${poll.metric.name}"),
+                        trailing: Text(poll.timestamp.toIso8601String()),
+                      );
+                    }).toList(),
+                  )
+                ],
+              ),
+            );
+          },
+        );
+      },
     );
   }
 }
