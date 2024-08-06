@@ -9,8 +9,8 @@ class LoadingIndicator extends StatelessWidget {
 
   @override
   Widget build(BuildContext context) {
-    return SpinKitPulse(
-      color: Colors.grey,
+    return SpinKitWaveSpinner(
+      color: Colors.blue,
     );
   }
 }

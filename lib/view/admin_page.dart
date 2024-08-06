@@ -18,7 +18,6 @@ enum AdminSections {
 }
 
 class AdminTab extends StatelessWidget {
-
   AdminTab({super.key});
 
   final List<AdminSections> adminSections = AdminSections.values;
@@ -46,11 +45,13 @@ class AdminTab extends StatelessWidget {
             Expanded(
               child: TabBarView(
                 children: adminSections
-                    .map((e) => switch (e) {
-                          AdminSections.users => AllUsersTab(),
-                          AdminSections.mvp => MVPSection(),
-                      AdminSections.wasteEstimation => WasteEstimation(),
-                        },)
+                    .map(
+                      (e) => switch (e) {
+                        AdminSections.users => AllUsersTab(),
+                        AdminSections.mvp => MVPSection(),
+                        AdminSections.wasteEstimation => WasteEstimation(),
+                      },
+                    )
                     .toList(),
               ),
             )
@@ -153,12 +154,17 @@ class _MVPSectionState extends State<MVPSection> {
           return const LoadingIndicator();
         }
 
-        if(!snapshot.hasData) {
-          return ElevatedButton(onPressed: () {
-            setState(() {
-
-            });
-          }, child: Icon(Icons.replay));
+        if (!snapshot.hasData) {
+          return Column(
+            children: [
+              Text("No posts"),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  child: Icon(Icons.replay)),
+            ],
+          );
         }
 
         List<UserPostsModel> posts = snapshot.requireData;
@@ -171,15 +177,13 @@ class _MVPSectionState extends State<MVPSection> {
             return FutureBuilder(
                 future: getUserData(p.postedByUserId),
                 builder: (context, snap) {
-
-                  if(snap.connectionState != ConnectionState.done) {
+                  if (snap.connectionState != ConnectionState.done) {
                     return const LoadingIndicator();
                   }
 
                   User? user = snap.data;
-                return MVPItem(user: user, postsModel: p);
-              }
-            );
+                  return MVPItem(user: user, postsModel: p);
+                });
           },
         );
       },
@@ -235,9 +239,8 @@ class _AllUsersTabState extends State<AllUsersTab> {
               ),
               title: Text(u.displayName),
               subtitle: Visibility(
-                visible: false,
-                  child: Text("Joined at ${u.createdAt.toLocal().toString()}")
-              ),
+                  visible: false,
+                  child: Text("Joined at ${u.createdAt.toLocal().toString()}")),
               trailing: SizedBox(
                 height: 100,
                 width: 80,
@@ -354,12 +357,17 @@ class _WasteEstimationState extends State<WasteEstimation> {
           return const LoadingIndicator();
         }
 
-        if(!snapshot.hasData) {
-          return ElevatedButton(onPressed: () {
-            setState(() {
-
-            });
-          }, child: Icon(Icons.replay));
+        if (!snapshot.hasData) {
+          return Column(
+            children: [
+              const Text("No posts"),
+              ElevatedButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  child: const Icon(Icons.replay)),
+            ],
+          );
         }
 
         List<AdminPost> posts = snapshot.requireData;
@@ -369,27 +377,111 @@ class _WasteEstimationState extends State<WasteEstimation> {
           itemCount: posts.length,
           itemBuilder: (_, i) {
             AdminPost p = posts[i];
-            return ListTile(
-              title: Text(p.content),
-              subtitle: Column(
-                mainAxisSize: MainAxisSize.min,
-                children: [
-                  Text("Submissions"),
-                  Text("List of estimated"),
-                  Column(
-                    crossAxisAlignment: CrossAxisAlignment.center,
-                    mainAxisAlignment: MainAxisAlignment.start,
-                    mainAxisSize: MainAxisSize.min,
-                    children: p.userPollData.values.map((poll) {
-                      return ListTile(
-                        title: Text("UserId: ${poll.userId}"),
-                        subtitle: Text("${poll.value} ${poll.metric.name}"),
-                        trailing: Text(poll.timestamp.toIso8601String()),
-                      );
-                    }).toList(),
-                  )
-                ],
-              ),
+            List<PollData> pollData = p.userPollData.values.toList();
+
+            return FutureBuilder(
+                future: getUserData(p.postedBy),
+                builder: (context, snap) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const LoadingIndicator();
+                  }
+
+                  User? user = snap.data;
+
+                  return Card(
+                    margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+                    child: Padding(
+                      padding: const EdgeInsets.all(8.0),
+                      child: Column(
+                        crossAxisAlignment: CrossAxisAlignment.start,
+                        children: [
+                          Row(
+                            children: [
+                              CircularPhoto(
+                                url: user?.photoUrl,
+                                radius: 40,
+                              ),
+                              const SizedBox(width: 8.0),
+                              Column(
+                                crossAxisAlignment: CrossAxisAlignment.start,
+                                children: [
+                                  Text(
+                                    user?.displayName ?? '-',
+                                    style: const TextStyle(fontWeight: FontWeight.bold),
+                                  ),
+                                  Text(timeago.format(p.postedAt)),
+                                ],
+                              ),
+                            ],
+                          ),
+                          const SizedBox(height: 8.0),
+                          Text(p.content),
+                          const SizedBox(height: 8.0),
+                          Column(
+                            crossAxisAlignment: CrossAxisAlignment.stretch,
+                            mainAxisSize: MainAxisSize.min,
+                            children: [
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: const Text("Submissions", textAlign: TextAlign.start, style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),),
+                              ),
+                              Padding(
+                                padding: const EdgeInsets.all(8.0),
+                                child: const Text("List of estimates", textAlign: TextAlign.start, style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),),
+                              ),
+                              ListView.builder(
+                                shrinkWrap: true,
+                                itemCount: pollData.length,
+                                itemBuilder: (_, i) {
+                                  PollData poll = pollData[i];
+                                  return Flex(
+                                    direction: Axis.horizontal,
+                                    mainAxisAlignment: MainAxisAlignment.spaceEvenly,
+                                    crossAxisAlignment: CrossAxisAlignment.center,
+                                    children: [
+                                      Text("${i + 1}. "),
+                                      Expanded(child: FutureBuilder(
+                                          future: getUserData(poll.userId),
+                                          builder: (context, snap) {
+                                            if (snap.connectionState != ConnectionState.done) {
+                                              return const LoadingIndicator();
+                                            }
+
+                                            User? user = snap.data;
+                                            return Row(
+                                              children: [
+                                                CircularPhoto(
+                                                  url: user?.photoUrl,
+                                                  radius: 40,
+                                                ),
+                                                const SizedBox(width: 8.0),
+                                                Column(
+                                                  crossAxisAlignment: CrossAxisAlignment.start,
+                                                  children: [
+                                                    Text(
+                                                      user?.displayName ?? '-',
+                                                      style: const TextStyle(fontWeight: FontWeight.bold),
+                                                    ),
+                                                    Text(timeago.format(p.postedAt)),
+                                                  ],
+                                                ),
+                                              ],
+                                            );
+                                          }
+                                      ),),
+                                      Expanded(child: Text("${poll.value} ${poll.metric.name}", style: TextStyle(fontSize: 18, fontWeight: FontWeight.bold),textAlign: TextAlign.center)),
+                                      Expanded(child: Text(formatDateTime(poll.timestamp), textAlign: TextAlign.center,),),
+                                    ],
+                                  );
+                                },
+                              )
+                            ],
+                          ),
+                        ],
+                      ),
+                    ),
+                  );
+              }
             );
           },
         );

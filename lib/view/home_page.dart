@@ -110,8 +110,10 @@ class _HomeTabState extends State<HomeTab> {
         ),
         Expanded(
           child: FutureBuilder(
-            future: Future.wait<dynamic>(
-                [_firestore.fetchAdminPosts(), _firestore.getPosts(),  ]),
+            future: Future.wait<dynamic>([
+              _firestore.fetchAdminPosts(),
+              _firestore.getPosts(),
+            ]),
             builder: (_, snap) {
               if (snap.connectionState != ConnectionState.done) {
                 return const LoadingIndicator();
@@ -240,171 +242,189 @@ class EstimationAdminPostWidget extends StatelessWidget {
             }
 
             User? user = snap.data;
-          return Card(
-            child: Padding(
-              padding: const EdgeInsets.all(8.0),
-              child: Column(
-                children: [
-                  Row(
-                    children: [
-                      CircularPhoto(
-                        url: user?.photoUrl,
-                        radius: 40,
-                      ),
-                      const SizedBox(width: 8.0),
-                      Column(
-                        crossAxisAlignment: CrossAxisAlignment.start,
-                        children: [
-                          Text(
-                            user?.displayName ?? '-',
-                            style: const TextStyle(fontWeight: FontWeight.bold),
-                          ),
-                          Text(timeago.format(p.postedAt)),
-                        ],
-                      ),
-                    ],
-                  ),
-                  const SizedBox(height: 8.0),
-                  Text(p.content),
-                  ValueListenableBuilder(
-                    valueListenable: metricNotifier,
-                    builder: (_, metric, __) {
-                      if (currentUserId == null) {
-                        return const Text("No user data found");
-                      }
+            return Card(
+              child: Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: Column(
+                  children: [
+                    Row(
+                      children: [
+                        CircularPhoto(
+                          url: user?.photoUrl,
+                          radius: 40,
+                        ),
+                        const SizedBox(width: 8.0),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            Text(
+                              user?.displayName ?? '-',
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
+                            ),
+                            Text(timeago.format(p.postedAt)),
+                          ],
+                        ),
+                      ],
+                    ),
+                    const SizedBox(height: 8.0),
+                    Text(p.content),
+                    ValueListenableBuilder(
+                      valueListenable: metricNotifier,
+                      builder: (_, metric, __) {
+                        if (currentUserId == null) {
+                          return const Text("No user data found");
+                        }
 
-                      if (currentUserId!.role == UserRoles.admin) {
-                        return ListTile(
-                          title: const Text("Total submissions"),
-                          subtitle: Text("${p.userPollData.length} submissions"),
+                        if (currentUserId!.role == UserRoles.admin) {
+                          return ListTile(
+                            title: const Text("Total submissions"),
+                            subtitle:
+                                Text("${p.userPollData.length} submissions"),
+                          );
+                        }
+
+                        PollData? userPollData =
+                            p.userPollData[currentUserId?.id];
+
+                        return Visibility(
+                          visible: userPollData != null,
+                          replacement: ValueListenableBuilder(
+                            valueListenable: showTextField,
+                            builder: (_, show, __) {
+                              return Visibility(
+                                visible: show,
+                                replacement: Align(
+                                  alignment: Alignment.centerLeft,
+                                  child: ElevatedButton(
+                                    onPressed: () {
+                                      showTextField.value = true;
+                                    },
+                                    child: const Text("Click to submit"),
+                                  ),
+                                ),
+                                child: Padding(
+                                  padding: const EdgeInsets.only(
+                                      top: 8.0, bottom: 8.0),
+                                  child: Row(
+                                    mainAxisAlignment: MainAxisAlignment.start,
+                                    crossAxisAlignment:
+                                        CrossAxisAlignment.center,
+                                    children: [
+                                      SizedBox(
+                                        width: 150,
+                                        child: TextFormField(
+                                          controller: estimationController,
+                                          keyboardType: const TextInputType
+                                              .numberWithOptions(
+                                            decimal: true,
+                                            signed: true,
+                                          ),
+                                          inputFormatters: [
+                                            FilteringTextInputFormatter.allow(
+                                                RegExp(r'^\d+\.?\d{0,2}')),
+                                          ],
+                                          autovalidateMode: AutovalidateMode
+                                              .onUserInteraction,
+                                          validator: (s) =>
+                                              (s?.isEmpty ?? false)
+                                                  ? "Amount required"
+                                                  : null,
+                                          decoration: InputDecoration(
+                                            labelText: "Estimation",
+                                            hintText: "20 ${metric.name}",
+                                          ),
+                                        ),
+                                      ),
+                                      SizedBox(
+                                        width: 100,
+                                        child: Card(
+                                          child: Padding(
+                                            padding: const EdgeInsets.all(8.0),
+                                            child: DropdownButton<Metric>(
+                                              value: metric,
+                                              isDense: true,
+                                              isExpanded: true,
+                                              hint:
+                                                  const Text('Select a metric'),
+                                              items: Metric.values.map((r) {
+                                                return DropdownMenuItem<Metric>(
+                                                  value: r,
+                                                  child: Text(
+                                                      r.name.toUpperCase()),
+                                                );
+                                              }).toList(),
+                                              onChanged: (c) {
+                                                if (c == null) return;
+                                                metricNotifier.value = c;
+                                              },
+                                            ),
+                                          ),
+                                        ),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          double? estimate = double.tryParse(
+                                            estimationController.text,
+                                          );
+                                          if (estimate == null) return;
+
+                                          print("Posting estimate ${estimate}");
+
+                                          p.userPollData.putIfAbsent(
+                                            currentUserId!.id,
+                                            () => PollData(
+                                              userId: currentUserId!.id,
+                                              value: estimate,
+                                              timestamp: DateTime.now(),
+                                              metric: metric,
+                                            ),
+                                          );
+
+                                          print("Saving ${p.toString()}");
+
+                                          firestore.saveAdminPost(p);
+                                        },
+                                        child: Text("Submit"),
+                                      ),
+                                      TextButton(
+                                        onPressed: () {
+                                          showTextField.value = false;
+                                          estimationController.clear();
+                                        },
+                                        child: Text(
+                                          "Cancel",
+                                          style: TextStyle(
+                                            color: Colors.red,
+                                            fontSize: 13,
+                                          ),
+                                          textAlign: TextAlign.left,
+                                        ),
+                                      ),
+                                    ],
+                                  ),
+                                ),
+                              );
+                            },
+                          ),
+                          child: ListTile(
+                            leading: const Icon(
+                              Icons.check,
+                              color: Colors.green,
+                            ),
+                            title:
+                                const Text("You have submitted your estimate"),
+                            subtitle: Text(
+                                "${userPollData?.value} ${userPollData?.metric.name}"),
+                          ),
                         );
-                      }
-
-                      PollData? userPollData = p.userPollData[currentUserId?.id];
-
-                      return Visibility(
-                        visible: userPollData != null,
-                        replacement: ValueListenableBuilder(
-                          valueListenable: showTextField,
-                          builder: (_, show, __) {
-                            return Visibility(
-                              visible: show,
-                              replacement: Align(
-                                alignment: Alignment.centerLeft,
-                                child: ElevatedButton(
-                                  onPressed: () {
-                                    showTextField.value = true;
-                                  },
-                                  child: const Text("Click to submit"),
-                                ),
-                              ),
-                              child: Padding(
-                                padding: const EdgeInsets.only(top: 8.0, bottom: 8.0),
-                                child: Row(
-                                  mainAxisAlignment: MainAxisAlignment.start,
-                                  crossAxisAlignment: CrossAxisAlignment.center,
-                                  children: [
-                                    SizedBox(
-                                      width: 150,
-                                      child: TextFormField(
-                                        controller: estimationController,
-                                        keyboardType:
-                                        const TextInputType.numberWithOptions(
-                                          decimal: true,
-                                          signed: true,
-                                        ),
-                                        inputFormatters: [
-                                          FilteringTextInputFormatter.allow(
-                                              RegExp(r'^\d+\.?\d{0,2}')),
-                                        ],
-                                        autovalidateMode:
-                                        AutovalidateMode.onUserInteraction,
-                                        validator: (s) => (s?.isEmpty ?? false)
-                                            ? "Amount required"
-                                            : null,
-                                        decoration: InputDecoration(
-                                          
-                                          labelText: "Estimation",
-                                          hintText: "20 ${metric.name}",
-                                        ),
-                                      ),
-                                    ),
-                                    SizedBox(
-                                      width: 100,
-                                      child: Card(
-                                        child: Padding(
-                                          padding: const EdgeInsets.all(8.0),
-                                          child: DropdownButton<Metric>(
-                                            value: metric,
-                                            isDense: true,
-                                            isExpanded: true,
-                                            hint: const Text('Select a metric'),
-                                            items: Metric.values.map((r) {
-                                              return DropdownMenuItem<Metric>(
-                                                value: r,
-                                                child: Text(r.name.toUpperCase()),
-                                              );
-                                            }).toList(),
-                                            onChanged: (c) {
-                                              if (c == null) return;
-                                              metricNotifier.value = c;
-                                            },
-                                          ),
-                                        ),
-                                      ),
-                                    ),
-                                    TextButton(
-                                      onPressed: () {
-                                        double? estimate = double.tryParse(
-                                          estimationController.text,
-                                        );
-                                        if (estimate == null) return;
-
-                                        print("Posting estimate ${estimate}");
-
-                                        p.userPollData.putIfAbsent(
-                                          currentUserId!.id,
-                                              () => PollData(
-                                            userId: currentUserId!.id,
-                                            value: estimate,
-                                            timestamp: DateTime.now(),
-                                            metric: metric,
-                                          ),
-                                        );
-
-                                        print("Saving ${p.toString()}");
-
-                                        firestore.saveAdminPost(p);
-                                      },
-                                      child: Text("Submit"),
-                                    ),
-                                    TextButton(onPressed: () {
-                                      showTextField.value = false;
-                                      estimationController.clear();
-                                    }, child: Text("Cancel", style: TextStyle(color: Colors.red, fontSize: 13,),textAlign: TextAlign.left,),),
-                                  ],
-                                ),
-                              ),
-                            );
-                          },
-                        ),
-                        child: ListTile(
-                          leading: const Icon(
-                            Icons.check,
-                            color: Colors.green,
-                          ),
-                          title: const Text("You have submitted your estimate"),
-                          subtitle: Text("${userPollData?.value} ${userPollData?.metric.name}"),
-                        ),
-                      );
-                    },
-                  ),
-                ],
+                      },
+                    ),
+                  ],
+                ),
               ),
-            ),
-          );
-        }
-      ),
+            );
+          }),
     );
   }
 }
@@ -426,7 +446,8 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
 
             User? user = snap.data;
             return Card(
-              margin: const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              margin:
+                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -444,7 +465,8 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
                           children: [
                             Text(
                               user?.displayName ?? '-',
-                              style: const TextStyle(fontWeight: FontWeight.bold),
+                              style:
+                                  const TextStyle(fontWeight: FontWeight.bold),
                             ),
                             Text(timeago.format(p.postedAt)),
                           ],
@@ -454,12 +476,26 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
                     const SizedBox(height: 8.0),
                     Text(p.content),
                     const SizedBox(height: 8.0),
+                    TextButton(
+                      onPressed: () {
+                        showBottomSheet(
+                          context: context,
+                          builder: (_) => CommentBottomSheet(p: p),
+                        );
+                      },
+                      child: Row(
+                        mainAxisSize: MainAxisSize.min,
+                        children: [
+                          const Icon(Icons.chat),
+                          Text(" ${p.comments.length} Comments")
+                        ],
+                      ),
+                    )
                   ],
                 ),
               ),
             );
-        }
-      ),
+          }),
     );
   }
 }
@@ -535,6 +571,105 @@ class Post extends StatelessWidget {
           ],
         ),
       ),
+    );
+  }
+}
+
+class CommentBottomSheet extends StatelessWidget {
+  CommentBottomSheet({required this.p, super.key});
+
+  final AdminPost p;
+  late final List<UserComment> comments = p.comments;
+  final TextEditingController commentController = TextEditingController();
+  final ValueNotifier<bool> loading = ValueNotifier(false);
+
+  @override
+  Widget build(BuildContext context) {
+    return BottomSheet(
+      backgroundColor: Colors.transparent,
+      onClosing: () {},
+      builder: (context) {
+        return SizedBox(
+          height: 350,
+          child: Card(
+            child: Flex(
+              direction: Axis.vertical,
+              mainAxisAlignment: MainAxisAlignment.spaceBetween,
+              children: [
+
+                const Padding(
+                  padding: EdgeInsets.all(8.0),
+                  child: Text("Comments", textAlign: TextAlign.start, style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),),
+                ),
+
+                Padding(
+                 padding: const EdgeInsets.all(8.0),
+                 child: TextFormField(
+                   controller: commentController,
+                   decoration: InputDecoration(
+                     hintText: "Congratulations",
+                     labelText: "Comment",
+                   ),
+                 ),
+               ),
+
+                Padding(
+                  padding: const EdgeInsets.all(8.0),
+                  child: ValueListenableBuilder(
+                    valueListenable: loading,
+                    builder: (_, isLoading, __) {
+                      return Visibility(
+                        visible: !isLoading,
+                        replacement: LoadingIndicator(),
+                        child: ElevatedButton(onPressed: () {
+                          String comment = commentController.text;
+                          if(comment.isEmpty) return;
+
+                          FirestoreService firestore = getIt<FirestoreService>();
+
+                          String? userId = firestore.currentUser.value?.id;
+                          if(userId == null) return;
+
+
+                          try {
+                            p.comments.add(UserComment(userId: userId, comment: comment, timestamp: DateTime.now(),),);
+
+                            loading.value = true;
+                            firestore.saveAdminPost(p);
+                          } catch(e) {
+                            print(e.toString());
+                          } finally {
+                            loading.value = false;
+                          }
+
+
+                        }, child: Text("Post"),),
+                      );
+                    },
+                  ),
+                ),
+
+                Expanded(
+                  child: ListView.builder(
+                    shrinkWrap: true,
+                    itemCount: comments.length,
+                    itemBuilder: (_, i) {
+                      var c = comments[i];
+                      return ListTile(
+                        title: Text(c.comment),
+                      );
+                    },
+                  ),
+                ),
+
+                TextButton(onPressed: () {
+                  Navigator.of(context).pop();
+                }, child: const Text("Close"),),
+              ],
+            ),
+          ),
+        );
+      },
     );
   }
 }

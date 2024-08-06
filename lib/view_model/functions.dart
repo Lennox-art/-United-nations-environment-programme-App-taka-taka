@@ -6,6 +6,7 @@ import 'package:flutter/material.dart';
 import 'package:food/model/models.dart';
 import 'package:food/view_model/firestore_service.dart';
 import 'package:food/main.dart';
+import 'package:intl/intl.dart';
 
 final Map<String, Uint8List> appImageCache = {};
 
@@ -59,4 +60,8 @@ Future<Uint8List?> loadNetworkImage(String? path) async {
   final byteData =
       await imageInfo.image.toByteData(format: ui.ImageByteFormat.png);
   return byteData?.buffer.asUint8List();
+}
+String formatDateTime(DateTime dateTime) {
+  final DateFormat formatter = DateFormat('MM/dd/yyyy hh:mm a');
+  return formatter.format(dateTime);
 }

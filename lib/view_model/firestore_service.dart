@@ -29,7 +29,6 @@ class FirestoreService {
     var data = await _firestore
         .collection('posts')
         .orderBy('votes', descending: true)
-        .orderBy('created_at', descending: true)
         .limit(limit)
         .get();
 
@@ -77,7 +76,6 @@ class FirestoreService {
     var data = await _firestore
         .collection('admin_posts')
         .where('post_type', isEqualTo: AdminPostType.estimation.name)
-        .orderBy('posted_at', descending: true)
         .get();
 
     return data.docs.map((d) => AdminPost.fromJson(d.data())).toList();
