@@ -98,25 +98,25 @@ class IntroductionPage extends StatelessWidget {
             children: <Widget>[
               Image.asset(
                 'assets/un-preview.png',
-                width: 200,
+                width: 300,
                 height: 150,
                 fit: BoxFit.cover,
               ),
               const SizedBox(height: 30),
               const Text(
                 "App Taka Taka",
-                style: TextStyle(fontSize: 24, fontWeight: FontWeight.bold),
+                style: TextStyle(fontSize: 26, fontWeight: FontWeight.bold),
               ),
               const SizedBox(height: 40),
               const Text(
-                "Join us in making steps towards acheiving a zero waste at UNON compound",
+                "Join us in making steps towards achieving a zero waste compound at UNON",
                 textAlign: TextAlign.center,
                 style: TextStyle(
                     fontSize: 18,
                   fontWeight: FontWeight.w400,
                 ),
               ),
-              const SizedBox(height: 20),
+              const SizedBox(height: 30),
               ElevatedButton(
                 onPressed: goToSignUpPage,
                 child: const Text("Register"),

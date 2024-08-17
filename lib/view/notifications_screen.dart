@@ -9,12 +9,12 @@ class Notification {
   Notification({required this.title, required this.message, this.isRead = false});
 }
 
-class NotificationsScreen extends StatefulWidget {
+class NotificationsPage extends StatefulWidget {
   @override
-  _NotificationsScreenState createState() => _NotificationsScreenState();
+  _NotificationsPageState createState() => _NotificationsPageState();
 }
 
-class _NotificationsScreenState extends State<NotificationsScreen> {
+class _NotificationsPageState extends State<NotificationsPage> {
   List<Notification> notifications = [
     Notification(title: 'Welcome!', message: 'Thank you for joining our  app.'),
     Notification(title: 'New Feature', message: 'Check out the new feature in the latest update.'),
@@ -24,7 +24,9 @@ class _NotificationsScreenState extends State<NotificationsScreen> {
   @override
   Widget build(BuildContext context) {
     return Scaffold(
-
+      appBar: AppBar(
+        title: Text("Notifications"),
+      ),
       body: ListView.builder(
         itemCount: notifications.length,
         itemBuilder: (context, index) {

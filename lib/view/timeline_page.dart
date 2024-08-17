@@ -2,20 +2,21 @@ import 'package:flutter/material.dart';
 import 'package:flutter/services.dart';
 import 'package:food/main.dart';
 import 'package:food/model/models.dart';
+import 'package:food/theme/themes.dart';
 import 'package:food/view/widgets/reusable_widgets.dart';
 import 'package:food/view_model/auth_service.dart';
 import 'package:food/view_model/firestore_service.dart';
 import 'package:food/view_model/functions.dart';
 import 'package:timeago/timeago.dart' as timeago;
 
-class HomeTab extends StatefulWidget {
-  const HomeTab({super.key});
+class TimelineTab extends StatefulWidget {
+  const TimelineTab({super.key});
 
   @override
-  State<HomeTab> createState() => _HomeTabState();
+  State<TimelineTab> createState() => _TimelineTabState();
 }
 
-class _HomeTabState extends State<HomeTab> {
+class _TimelineTabState extends State<TimelineTab> {
   final TextEditingController _searchController = TextEditingController();
   final AuthService _authService = getIt<AuthService>();
   final FirestoreService _firestore = getIt<FirestoreService>();
@@ -33,128 +34,72 @@ class _HomeTabState extends State<HomeTab> {
 
   @override
   Widget build(BuildContext context) {
-    return Column(
-      children: [
-        Padding(
-          padding: const EdgeInsets.all(16.0),
-          child: Builder(builder: (context) {
-            return Row(
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-                Visibility(
-                  visible: _searchController.text.isNotEmpty,
-                  replacement: ValueListenableBuilder(
-                    valueListenable: _firestore.currentUser,
-                    builder: (_, user, __) {
-                      return Row(
-                        children: [
-                          Visibility(
-                            visible: user?.photoUrl != null,
-                            replacement: const CircleAvatar(
-                              backgroundColor: Colors.blue,
-                              child: Icon(Icons.person, color: Colors.white),
-                            ),
-                            child: CircularPhoto(
-                              radius: 50,
-                              url: user?.photoUrl,
-                            ),
-                          ),
-                          const SizedBox(width: 10),
-                          Column(
-                            crossAxisAlignment: CrossAxisAlignment.start,
-                            children: [
-                              const Text('Welcome!',
-                                  style: TextStyle(fontSize: 16)),
-                              Row(
-                                children: [
-                                  Text(user?.displayName ?? '',
-                                      style: const TextStyle(
-                                          fontWeight: FontWeight.bold,
-                                          fontSize: 18)),
-                                  const SizedBox(width: 5),
-                                  const Icon(Icons.waving_hand,
-                                      color: Colors.orange),
-                                ],
-                              ),
-                            ],
-                          ),
-                        ],
-                      );
-                    },
-                  ),
-                  child: Padding(
-                    padding: const EdgeInsets.all(8.0),
-                    child: SearchBar(
-                      controller: _searchController,
-                    ),
-                  ),
-                ),
-                /*Visibility(
-                  visible: _searchController.text.isNotEmpty,
-                  replacement: IconButton(
-                    onPressed: () {
-                      _searchController.text = " ";
-                    },
-                    icon: const Icon(Icons.search),
-                  ),
-                  child: IconButton(
-                    onPressed: () {
-                      _searchController.text = "";
-                    },
-                    icon: const Icon(Icons.close),
-                  ),
-                ),*/
-              ],
-            );
-          }),
-        ),
-        Expanded(
-          child: FutureBuilder(
-            future: Future.wait<dynamic>([
-              _firestore.fetchAdminPosts(),
-              _firestore.getPosts(),
-            ]),
-            builder: (_, snap) {
-              if (snap.connectionState != ConnectionState.done) {
-                return const LoadingIndicator();
-              }
-
-              List<dynamic> data = snap.data ?? [];
-              if (data.isEmpty) {
-                return const Text("No posts available");
-              }
-
-              List<dynamic> combinedList = data.expand((list) => list).toList();
-
-              return ListView.builder(
-                itemCount: combinedList.length,
-                itemBuilder: (_, i) {
-                  dynamic p = combinedList[i];
-                  print("index: $i");
-                  print("data: ${p.toString()}");
-                  print("${p.runtimeType} = Runtime Type");
-                  print("${p is UserPostsModel} = PostsModel");
-                  print("${p is AdminPost} = AdminPost");
-
-                  if (p is UserPostsModel) {
-                    return UserPostWidget(
-                      p: p,
-                      firestore: _firestore,
-                      authService: _authService,
-                    );
+    return Scaffold(
+      appBar: AppBar(
+        title: const Text("Timeline"),
+      ),
+      body: Padding(
+        padding: const EdgeInsets.all(16.0),
+        child: Visibility(
+          visible: _searchController.text.isNotEmpty,
+          replacement: ValueListenableBuilder(
+            valueListenable: _firestore.currentUser,
+            builder: (_, user, __) {
+              return FutureBuilder(
+                future: Future.wait<dynamic>([
+                  _firestore.fetchAdminPosts(),
+                  _firestore.getPosts(),
+                ]),
+                builder: (_, snap) {
+                  if (snap.connectionState != ConnectionState.done) {
+                    return const LoadingIndicator();
                   }
 
-                  if (p is AdminPost) {
-                    return AdminPostWidget(p: p);
+                  List<dynamic> data = snap.data ?? [];
+                  if (data.isEmpty) {
+                    return const Text("No posts available");
                   }
 
-                  return Text("Unknown type");
+                  List<dynamic> combinedList =
+                  data.expand((list) => list).toList();
+
+                  return ListView.builder(
+                    itemCount: combinedList.length,
+                    itemBuilder: (_, i) {
+                      dynamic p = combinedList[i];
+                      print("index: $i");
+                      print("data: ${p.toString()}");
+                      print("${p.runtimeType} = Runtime Type");
+                      print("${p is UserPostsModel} = PostsModel");
+                      print("${p is AdminPost} = AdminPost");
+
+                      if (p is UserPostsModel) {
+                        return UserPostWidget(
+                          p: p,
+                          firestore: _firestore,
+                          authService: _authService,
+                        );
+                      }
+
+                      if (p is AdminPost) {
+                        return AdminPostWidget(p: p);
+                      }
+
+                      return const Text("Unknown type");
+                    },
+                  );
                 },
               );
             },
           ),
+          child: Padding(
+            padding: const EdgeInsets.all(8.0),
+            child: SearchBar(
+              controller: _searchController,
+            ),
+          ),
         ),
-      ],
+      ),
     );
   }
 }
@@ -257,10 +202,18 @@ class EstimationAdminPostWidget extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              user?.displayName ?? '-',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                            Row(
+                              children: [
+                                Text(
+                                  user?.displayName ?? '-',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const Icon(
+                                  Icons.flag,
+                                  color: Colors.blue,
+                                ),
+                              ],
                             ),
                             Text(timeago.format(p.postedAt)),
                           ],
@@ -280,12 +233,12 @@ class EstimationAdminPostWidget extends StatelessWidget {
                           return ListTile(
                             title: const Text("Total submissions"),
                             subtitle:
-                                Text("${p.userPollData.length} submissions"),
+                            Text("${p.userPollData.length} submissions"),
                           );
                         }
 
                         PollData? userPollData =
-                            p.userPollData[currentUserId?.id];
+                        p.userPollData[currentUserId?.id];
 
                         return Visibility(
                           visible: userPollData != null,
@@ -309,7 +262,7 @@ class EstimationAdminPostWidget extends StatelessWidget {
                                   child: Row(
                                     mainAxisAlignment: MainAxisAlignment.start,
                                     crossAxisAlignment:
-                                        CrossAxisAlignment.center,
+                                    CrossAxisAlignment.center,
                                     children: [
                                       SizedBox(
                                         width: 150,
@@ -327,9 +280,9 @@ class EstimationAdminPostWidget extends StatelessWidget {
                                           autovalidateMode: AutovalidateMode
                                               .onUserInteraction,
                                           validator: (s) =>
-                                              (s?.isEmpty ?? false)
-                                                  ? "Amount required"
-                                                  : null,
+                                          (s?.isEmpty ?? false)
+                                              ? "Amount required"
+                                              : null,
                                           decoration: InputDecoration(
                                             labelText: "Estimation",
                                             hintText: "20 ${metric.name}",
@@ -346,7 +299,7 @@ class EstimationAdminPostWidget extends StatelessWidget {
                                               isDense: true,
                                               isExpanded: true,
                                               hint:
-                                                  const Text('Select a metric'),
+                                              const Text('Select a metric'),
                                               items: Metric.values.map((r) {
                                                 return DropdownMenuItem<Metric>(
                                                   value: r,
@@ -373,7 +326,7 @@ class EstimationAdminPostWidget extends StatelessWidget {
 
                                           p.userPollData.putIfAbsent(
                                             currentUserId!.id,
-                                            () => PollData(
+                                                () => PollData(
                                               userId: currentUserId!.id,
                                               value: estimate,
                                               timestamp: DateTime.now(),
@@ -413,7 +366,7 @@ class EstimationAdminPostWidget extends StatelessWidget {
                               color: Colors.green,
                             ),
                             title:
-                                const Text("You have submitted your estimate"),
+                            const Text("You have submitted your estimate"),
                             subtitle: Text(
                                 "${userPollData?.value} ${userPollData?.metric.name}"),
                           ),
@@ -447,7 +400,7 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
             User? user = snap.data;
             return Card(
               margin:
-                  const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
+              const EdgeInsets.symmetric(vertical: 8.0, horizontal: 16.0),
               child: Padding(
                 padding: const EdgeInsets.all(8.0),
                 child: Column(
@@ -463,10 +416,18 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
                         Column(
                           crossAxisAlignment: CrossAxisAlignment.start,
                           children: [
-                            Text(
-                              user?.displayName ?? '-',
-                              style:
-                                  const TextStyle(fontWeight: FontWeight.bold),
+                            Row(
+                              children: [
+                                Text(
+                                  user?.displayName ?? '-',
+                                  style: const TextStyle(
+                                      fontWeight: FontWeight.bold),
+                                ),
+                                const Icon(
+                                  Icons.flag,
+                                  color: Colors.blue,
+                                ),
+                              ],
                             ),
                             Text(timeago.format(p.postedAt)),
                           ],
@@ -479,8 +440,14 @@ class CongratulatoryAdminPostWidget extends StatelessWidget {
                     TextButton(
                       onPressed: () {
                         showBottomSheet(
+                          enableDrag: true,
+                          showDragHandle: true,
+                          elevation: 12.0,
                           context: context,
-                          builder: (_) => CommentBottomSheet(p: p),
+                          builder: (_) => CommentBottomSheet(
+                            p: p,
+                            onClosing: () {},
+                          ),
                         );
                       },
                       child: Row(
@@ -576,100 +543,197 @@ class Post extends StatelessWidget {
 }
 
 class CommentBottomSheet extends StatelessWidget {
-  CommentBottomSheet({required this.p, super.key});
-
   final AdminPost p;
-  late final List<UserComment> comments = p.comments;
+
+  final void Function() onClosing;
+
+  late final ValueNotifier<List<UserComment>> comments =
+  ValueNotifier(p.comments);
+
   final TextEditingController commentController = TextEditingController();
-  final ValueNotifier<bool> loading = ValueNotifier(false);
+
+  final ValueNotifier<bool> loadingNotifier = ValueNotifier(false);
+
+  final ValueNotifier<bool> showPostNotifier = ValueNotifier(false);
+
+  CommentBottomSheet({
+    required this.onClosing,
+    required this.p,
+    super.key,
+  });
 
   @override
   Widget build(BuildContext context) {
+    comments.value.sort((a, b) => a.timestamp.compareTo(b.timestamp));
+
     return BottomSheet(
       backgroundColor: Colors.transparent,
-      onClosing: () {},
+      onClosing: onClosing,
       builder: (context) {
-        return SizedBox(
-          height: 350,
-          child: Card(
-            child: Flex(
-              direction: Axis.vertical,
-              mainAxisAlignment: MainAxisAlignment.spaceBetween,
-              children: [
-
-                const Padding(
-                  padding: EdgeInsets.all(8.0),
-                  child: Text("Comments", textAlign: TextAlign.start, style: TextStyle(fontWeight: FontWeight.bold, decoration: TextDecoration.underline),),
-                ),
-
-                Padding(
-                 padding: const EdgeInsets.all(8.0),
-                 child: TextFormField(
-                   controller: commentController,
-                   decoration: InputDecoration(
-                     hintText: "Congratulations",
-                     labelText: "Comment",
-                   ),
-                 ),
-               ),
-
-                Padding(
-                  padding: const EdgeInsets.all(8.0),
-                  child: ValueListenableBuilder(
-                    valueListenable: loading,
-                    builder: (_, isLoading, __) {
-                      return Visibility(
-                        visible: !isLoading,
-                        replacement: LoadingIndicator(),
-                        child: ElevatedButton(onPressed: () {
-                          String comment = commentController.text;
-                          if(comment.isEmpty) return;
-
-                          FirestoreService firestore = getIt<FirestoreService>();
-
-                          String? userId = firestore.currentUser.value?.id;
-                          if(userId == null) return;
-
-
-                          try {
-                            p.comments.add(UserComment(userId: userId, comment: comment, timestamp: DateTime.now(),),);
-
-                            loading.value = true;
-                            firestore.saveAdminPost(p);
-                          } catch(e) {
-                            print(e.toString());
-                          } finally {
-                            loading.value = false;
-                          }
-
-
-                        }, child: Text("Post"),),
-                      );
-                    },
+        return ConstrainedBox(
+          constraints: const BoxConstraints(
+            maxHeight: 700,
+            maxWidth: 1000,
+            minHeight: 350,
+            minWidth: 300,
+          ),
+          child: Flex(
+            direction: Axis.vertical,
+            mainAxisAlignment: MainAxisAlignment.spaceBetween,
+            children: [
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: IconButton(
+                  onPressed: () {
+                    Navigator.of(context).pop();
+                  },
+                  icon: const Icon(
+                    Icons.cancel,
+                    color: Colors.red,
                   ),
                 ),
-
-                Expanded(
-                  child: ListView.builder(
-                    shrinkWrap: true,
-                    itemCount: comments.length,
-                    itemBuilder: (_, i) {
-                      var c = comments[i];
-                      return ListTile(
-                        title: Text(c.comment),
-                      );
-                    },
+              ),
+              const Padding(
+                padding: EdgeInsets.all(8.0),
+                child: Text(
+                  "Comments",
+                  textAlign: TextAlign.start,
+                  style: TextStyle(
+                    fontWeight: FontWeight.bold,
+                    decoration: TextDecoration.underline,
                   ),
                 ),
+              ),
+              Expanded(
+                child: ValueListenableBuilder(
+                    valueListenable: comments,
+                    builder: (_, commentsList, __) {
+                      return ListView.builder(
+                        shrinkWrap: true,
+                        itemCount: commentsList.length,
+                        itemBuilder: (_, i) {
+                          var c = commentsList[i];
+                          return CommentTile(
+                            comment: c,
+                          );
+                        },
+                      );
+                    }),
+              ),
+              Padding(
+                padding: const EdgeInsets.all(8.0),
+                child: TextFormField(
+                  controller: commentController,
+                  onChanged: (s) => showPostNotifier.value = s.isNotEmpty,
+                  decoration: InputDecoration(
+                    hintText: "Congratulations",
+                    labelText: "Comment",
+                    suffix: ValueListenableBuilder(
+                      valueListenable: showPostNotifier,
+                      builder: (_, showPost, __) {
+                        return Visibility(
+                          visible: showPost,
+                          child: ValueListenableBuilder(
+                            valueListenable: loadingNotifier,
+                            builder: (_, loading, __) {
+                              return Visibility(
+                                visible: !loading,
+                                replacement: const LoadingIndicator(),
+                                child: IconButton(
+                                  onPressed: () async {
+                                    String comment = commentController.text;
+                                    if (comment.isEmpty) return;
 
-                TextButton(onPressed: () {
-                  Navigator.of(context).pop();
-                }, child: const Text("Close"),),
-              ],
-            ),
+                                    FirestoreService firestore =
+                                    getIt<FirestoreService>();
+
+                                    String? userId =
+                                        firestore.currentUser.value?.id;
+                                    if (userId == null) return;
+
+                                    loadingNotifier.value = true;
+
+                                    try {
+                                      p.comments.add(
+                                        UserComment(
+                                          userId: userId,
+                                          comment: comment,
+                                          timestamp: DateTime.now(),
+                                        ),
+                                      );
+
+                                      await firestore.saveAdminPost(p);
+                                      commentController.clear();
+                                      comments.value = List.from(p.comments);
+                                    } catch (e) {
+                                      print(e.toString());
+                                    } finally {
+                                      loadingNotifier.value = false;
+                                    }
+                                  },
+                                  icon: const Icon(Icons.send),
+                                  color: highlightBlue,
+                                ),
+                              );
+                            },
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ),
+              ),
+            ],
           ),
         );
       },
     );
+  }
+}
+
+class CommentTile extends StatelessWidget {
+  const CommentTile({
+    required this.comment,
+    super.key,
+  });
+
+  final UserComment comment;
+
+  @override
+  Widget build(BuildContext context) {
+    return FutureBuilder(
+        future: getUserData(comment.userId),
+        builder: (context, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return const LoadingIndicator();
+          }
+
+          User? user = snap.data;
+
+          return ListTile(
+            leading: SizedBox(
+              width: 70,
+              height: 100,
+              child: Column(
+                mainAxisAlignment: MainAxisAlignment.center,
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  CircularPhoto(
+                    url: user?.photoUrl,
+                    radius: 40,
+                  ),
+                  Text(
+                    user?.displayName ?? '-',
+                    style: const TextStyle(fontWeight: FontWeight.bold),
+                    textAlign: TextAlign.center,
+                  ),
+                ],
+              ),
+            ),
+            title: Text(comment.comment),
+            subtitle: Text(timeago.format(comment.timestamp)),
+          );
+        });
   }
 }

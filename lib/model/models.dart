@@ -212,3 +212,12 @@ class UserComment {
     );
   }
 }
+
+
+class AboutData {
+  final String assetId;
+  final String description;
+
+  const AboutData(this.assetId, this.description);
+
+}

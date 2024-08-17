@@ -4,10 +4,14 @@ import 'package:food/routes/routes.dart';
 import 'package:food/theme/themes.dart';
 import 'package:food/view/admin_post_screen.dart';
 import 'package:food/view/edit_profile_page.dart';
+import 'package:food/view/timeline_page.dart';
 import 'package:food/view/new_post_screen.dart';
+import 'package:food/view/notifications_screen.dart';
+import 'package:food/view/profile_screen.dart';
 
 import 'package:food/view/splash_screen.dart';
 import 'package:food/view/super_page.dart';
+import 'package:food/view/widgets/admin_tab.dart';
 import 'package:food/view_model/auth_service.dart';
 import 'package:food/view_model/cloud_storage.dart';
 import 'package:food/view_model/firestore_service.dart';
@@ -46,10 +50,16 @@ class MyApp extends StatelessWidget {
       routes: {
         Routes.splashScreen.path: (_) => const SplashScreenPage(),
         Routes.login.path: (_) => const LoginScreen(),
-        Routes.superPage.path: (_) => SuperPageScreen(),
+        Routes.superPage.path: (_) => const SuperPageScreen(),
         Routes.newPost.path: (_) => NewPostScreen(),
         Routes.editProfile.path: (_) => const EditProfilePage(),
         Routes.adminNewPost.path: (_) =>  AdminPostScreen(),
+        Routes.timeline.path: (_) =>  const TimelineTab(),
+        Routes.wasteEstimation.path: (_) =>  const WasteEstimation(),
+        Routes.mvp.path: (_) =>  MVPPage(),
+        Routes.profile.path: (_) =>  const ProfilePage(),
+        Routes.users.path: (_) =>  const AllUsersPage(),
+        Routes.notifications.path: (_) =>  NotificationsPage(),
 
       },
     );

@@ -1,37 +1,47 @@
 import 'package:flutter/material.dart';
+import 'package:font_awesome_flutter/font_awesome_flutter.dart';
 import 'package:food/main.dart';
 import 'package:food/model/models.dart';
 import 'package:food/routes/routes.dart';
 import 'package:food/theme/themes.dart';
-import 'package:food/view/admin_page.dart';
-import 'package:food/view/home_page.dart';
-import 'package:food/view/profile_screen.dart';
 import 'package:food/view/widgets/reusable_widgets.dart';
 import 'package:food/view_model/auth_service.dart';
 import 'package:food/view_model/firestore_service.dart';
 
-import 'new_post_screen.dart';
-import 'notifications_screen.dart';
-
-
 enum SuperPages {
-  home("Home", Icons.home),
-  notifications("Notifications", Icons.notifications),
-  profile("Profile", Icons.person),
-  admin("Admin", Icons.admin_panel_settings_outlined);
+  timeline("Timeline", FontAwesomeIcons.barsStaggered, Routes.timeline),
+  wasteEstimation(
+      "Waste estimation", FontAwesomeIcons.dumpster, Routes.wasteEstimation),
+  newPost("New post", FontAwesomeIcons.plus, Routes.newPost),
+  adminNewPost("New post", FontAwesomeIcons.plus, Routes.adminNewPost),
+  mvp("Most voted posts", FontAwesomeIcons.medal, Routes.mvp),
+  profile("Profile", Icons.person, Routes.profile),
+  notifications("Notifications", Icons.notifications, Routes.notifications),
+  users("Users", FontAwesomeIcons.userGear, Routes.users);
 
   final String value;
   final IconData icon;
+  final Routes route;
 
-  const SuperPages(this.value, this.icon);
+  const SuperPages(this.value, this.icon, this.route);
 
-  Widget get widget => switch(this) {
-    SuperPages.home => const HomeTab(),
-    SuperPages.notifications => NotificationsScreen(),
-    SuperPages.profile => const ProfileScreen(),
-    SuperPages.admin => AdminTab(),
-  };
+  static List<SuperPages> get adminPages => [
+        SuperPages.timeline,
+        SuperPages.wasteEstimation,
+        SuperPages.mvp,
+        SuperPages.adminNewPost,
+        SuperPages.profile,
+        SuperPages.notifications,
+        SuperPages.users,
+      ];
 
+  static List<SuperPages> get userPages => [
+        SuperPages.timeline,
+        SuperPages.wasteEstimation,
+        SuperPages.newPost,
+        SuperPages.profile,
+        SuperPages.notifications,
+      ];
 }
 
 class SuperPageScreen extends StatefulWidget {
@@ -42,34 +52,35 @@ class SuperPageScreen extends StatefulWidget {
 }
 
 class _SuperPageScreenState extends State<SuperPageScreen> {
-
   final FirestoreService store = getIt<FirestoreService>();
-  SuperPages get _defaultPage => SuperPages.home;
+
+  SuperPages get _defaultPage => SuperPages.timeline;
   late SuperPages _selectedPage = _defaultPage;
   late Future<List<SuperPages>> _pages;
+  final FirestoreService _firestore = getIt<FirestoreService>();
+  final AuthService _authService = getIt<AuthService>();
 
   Future<List<SuperPages>> getUserData() async {
-    List<SuperPages> tabsToShow = SuperPages.values.toList();
-
     try {
-
       debugPrint("Getting Auth data");
       var user = getIt<AuthService>().userNotifier.value;
-      if(user == null) return tabsToShow..remove(SuperPages.admin);
+      if (user == null) return SuperPages.userPages;
 
       debugPrint("Getting User data");
       var userData = await store.getUserById(user.uid);
-      if(userData == null) return tabsToShow..remove(SuperPages.admin);
+      if (userData == null) return SuperPages.userPages;
 
       //Cache data
       store.currentUser.value = userData;
       debugPrint("ROLE ${userData.role.name}");
 
-      if(userData.role != UserRoles.admin) return tabsToShow..remove(SuperPages.admin);
+      if (userData.role != UserRoles.admin) {
+        return SuperPages.userPages;
+      }
 
-      return tabsToShow;
+      return SuperPages.adminPages;
     } catch (e) {
-      return tabsToShow..remove(SuperPages.admin);
+      return SuperPages.userPages;
     }
   }
 
@@ -88,85 +99,124 @@ class _SuperPageScreenState extends State<SuperPageScreen> {
   @override
   Widget build(BuildContext context) {
     return FutureBuilder(
-      initialData: <SuperPages> [_defaultPage],
+      initialData: <SuperPages>[_defaultPage],
       future: _pages,
       builder: (_, snap) {
-
-        if(snap.connectionState != ConnectionState.done) {
-          return const Scaffold(
-            body: LoadingIndicator()
-          );
+        if (snap.connectionState != ConnectionState.done) {
+          return const Scaffold(body: LoadingIndicator());
         }
 
-        if(snap.hasError || !snap.hasData) {
+        if (snap.hasError || !snap.hasData) {
           return Scaffold(
-              body: ElevatedButton(
-                onPressed: () {
-                  setState(() {
-
-                  });
-                },
-                child: const Icon(Icons.replay),
-              ),
+            body: ElevatedButton(
+              onPressed: () {
+                setState(() {});
+              },
+              child: const Icon(Icons.replay),
+            ),
           );
         }
 
         List<SuperPages> pages = snap.requireData;
 
-        return Scaffold(
-          appBar: AppBar(
-            toolbarHeight: 70,
-            title: ListTile(
-              contentPadding: const EdgeInsets.all(0.0),
-              title: const Padding(
-                padding: EdgeInsets.only(bottom: 6.0),
-                child: Text('Taka Taka App',style: TextStyle(color: Colors.white)),
+        return ValueListenableBuilder(
+          valueListenable: _firestore.currentUser,
+          builder: (_, user, __) {
+            return Scaffold(
+              appBar: AppBar(
+                  title: const Text("Taka Taka App"),
               ),
-              subtitle:Padding(
-                padding: const EdgeInsets.only(top: 5.0, bottom: 3.0),
-                child: Text(_selectedPage.value, style: TextStyle(color: Colors.white),),
+              body: Flex(
+                direction: Axis.vertical,
+                crossAxisAlignment: CrossAxisAlignment.stretch,
+                children: [
+                  Padding(
+                    padding: const EdgeInsets.all(10.0),
+                    child: Row(
+                      mainAxisAlignment: MainAxisAlignment.start,
+                      mainAxisSize: MainAxisSize.min,
+                      children: [
+                        Visibility(
+                          visible: user?.photoUrl != null,
+                          replacement: const CircleAvatar(
+                            backgroundColor: Colors.blue,
+                            child: Icon(Icons.person, color: Colors.white),
+                          ),
+                          child: CircularPhoto(
+                            radius: 60,
+                            url: user?.photoUrl,
+                          ),
+                        ),
+                        const SizedBox(width: 10),
+                        Column(
+                          crossAxisAlignment: CrossAxisAlignment.start,
+                          children: [
+                            const Text('Welcome!',
+                                style: TextStyle(fontSize: 16)),
+                            Row(
+                              children: [
+                                Text(
+                                  user?.displayName ?? '',
+                                  style: const TextStyle(
+                                    fontWeight: FontWeight.bold,
+                                    fontSize: 18,
+                                  ),
+                                ),
+                                const SizedBox(width: 5),
+                                const Icon(Icons.waving_hand,
+                                    color: Colors.orange),
+                              ],
+                            ),
+                          ],
+                        ),
+                      ],
+                    ),
+                  ),
+                  Expanded(
+                    child: GridView.builder(
+                      itemCount: pages.length,
+                      gridDelegate:
+                          const SliverGridDelegateWithFixedCrossAxisCount(
+                        crossAxisCount: 2,
+                        crossAxisSpacing: 10.0,
+                        mainAxisSpacing: 30.0,
+                        mainAxisExtent: 100.0,
+                      ),
+                      itemBuilder: (_, i) {
+                        SuperPages page = pages[i];
+                        return GestureDetector(
+                          onTap: () {
+                            Navigator.of(context).pushNamed(
+                              page.route.path,
+                            );
+                          },
+                          child: Card(
+                            child: Row(
+                              mainAxisAlignment: MainAxisAlignment.start,
+                              crossAxisAlignment: CrossAxisAlignment.center,
+                              mainAxisSize: MainAxisSize.min,
+                              children: [
+                                Padding(
+                                  padding: const EdgeInsets.all(8.0),
+                                  child: Icon(page.icon, color: highlightBlue,),
+                                ),
+                                Padding(
+                                  padding: const EdgeInsets.only(left: 15.0),
+                                  child: Text(page.value),
+                                )
+                              ],
+                            ),
+                          ),
+                        );
+                      },
+                    ),
+                  ),
+                ],
               ),
-
-            ),
-          ),
-          body: _selectedPage.widget,
-          floatingActionButton: Visibility(
-            visible: _selectedPage == SuperPages.home,
-            child: FloatingActionButton(
-              onPressed: () {
-                switch(store.currentUser.value?.role) {
-                  case UserRoles.user:
-                  Navigator.of(context).pushNamed(Routes.newPost.path);
-                  break;
-
-                  case UserRoles.admin:
-                    Navigator.of(context).pushNamed(Routes.adminNewPost.path);
-                    break;
-
-                  default:
-                    break;
-
-                }
-
-
-              },
-              child: const Icon(Icons.add),
-            ) ,
-          ),
-          bottomNavigationBar: BottomNavigationBar(
-            items: pages.map((p) {
-              return BottomNavigationBarItem(
-                icon: Icon(p.icon),
-                label: p.value,
-                backgroundColor: highlightBlue,
-              );
-            }).toList(),
-            currentIndex: _selectedPage.index,
-            onTap: (i) => _onItemTapped(pages[i]) ,
-          ),
+            );
+          },
         );
-      }
+      },
     );
   }
-
 }

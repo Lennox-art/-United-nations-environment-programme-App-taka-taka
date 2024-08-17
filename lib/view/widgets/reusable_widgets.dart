@@ -1,16 +1,20 @@
-
 import 'package:flutter/material.dart';
 import 'package:flutter_spinkit/flutter_spinkit.dart';
 import 'package:food/view_model/functions.dart';
 
-
 class LoadingIndicator extends StatelessWidget {
-  const LoadingIndicator({super.key});
+  const LoadingIndicator({
+    this.size = 50,
+    super.key,
+  });
+
+  final double size;
 
   @override
   Widget build(BuildContext context) {
     return SpinKitWaveSpinner(
       color: Colors.blue,
+      size: size,
     );
   }
 }
@@ -30,7 +34,6 @@ class CircularPhoto extends StatefulWidget {
 }
 
 class _CircularPhotoState extends State<CircularPhoto> {
-
   @override
   Widget build(BuildContext context) {
     if (widget.url == null) {
@@ -40,33 +43,33 @@ class _CircularPhotoState extends State<CircularPhoto> {
     return FutureBuilder(
         initialData: appImageCache[widget.url],
         future: getImageData(widget.url),
-      builder: (_, snap) {
+        builder: (_, snap) {
+          if (snap.connectionState != ConnectionState.done) {
+            return LoadingIndicator(
+              size: widget.radius,
+            );
+          }
 
-        if(snap.connectionState != ConnectionState.done) {
-          return const LoadingIndicator();
-        }
+          if (!snap.hasData) {
+            return const Text("No image data");
+          }
 
-        if(!snap.hasData) {
-          return const Text("No image data");
-        }
-
-        return ClipRRect(
-          borderRadius: BorderRadius.circular(360.0), //add border radius
-          child: Image.memory(
-           snap.requireData!,
-            height: widget.radius,
-            width: widget.radius,
-            fit: BoxFit.cover,
-            errorBuilder: (_, e, trace) => IconButton(
-              onPressed: () {
-                setState(() {});
-              },
-              icon: const Icon(Icons.refresh),
+          return ClipRRect(
+            borderRadius: BorderRadius.circular(360.0), //add border radius
+            child: Image.memory(
+              snap.requireData!,
+              height: widget.radius,
+              width: widget.radius,
+              fit: BoxFit.cover,
+              errorBuilder: (_, e, trace) => IconButton(
+                onPressed: () {
+                  setState(() {});
+                },
+                icon: const Icon(Icons.refresh),
+              ),
             ),
-          ),
-        );
-      }
-    );
+          );
+        });
   }
 }
 
@@ -87,13 +90,11 @@ class RectangularPhoto extends StatefulWidget {
 }
 
 class _RectangularPhotoState extends State<RectangularPhoto> {
-
   @override
   Widget build(BuildContext context) {
     if (widget.url == null) {
       return const Icon(Icons.image_outlined);
     }
-
 
     return Container(
       constraints: BoxConstraints(
@@ -104,30 +105,28 @@ class _RectangularPhotoState extends State<RectangularPhoto> {
       ),
       child: Card(
         child: FutureBuilder(
-          initialData: appImageCache[widget.url],
-          future: getImageData(widget.url),
-          builder: (_, snap) {
+            initialData: appImageCache[widget.url],
+            future: getImageData(widget.url),
+            builder: (_, snap) {
+              if (snap.connectionState != ConnectionState.done) {
+                return const LoadingIndicator();
+              }
 
-            if(snap.connectionState != ConnectionState.done) {
-              return const LoadingIndicator();
-            }
+              if (!snap.hasData) {
+                return const Text("No image data");
+              }
 
-            if(!snap.hasData) {
-              return const Text("No image data");
-            }
-
-            return Image.memory(
-              snap.requireData!,
-              fit: BoxFit.contain,
-              errorBuilder: (_, e, trace) => IconButton(
-                onPressed: () {
-                  setState(() {});
-                },
-                icon: const Icon(Icons.refresh),
-              ),
-            );
-          }
-        ),
+              return Image.memory(
+                snap.requireData!,
+                fit: BoxFit.contain,
+                errorBuilder: (_, e, trace) => IconButton(
+                  onPressed: () {
+                    setState(() {});
+                  },
+                  icon: const Icon(Icons.refresh),
+                ),
+              );
+            }),
       ),
     );
   }
